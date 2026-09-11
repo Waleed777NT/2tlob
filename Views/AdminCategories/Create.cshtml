@@ -1,0 +1,51 @@
+﻿@using _2tlob.ViewModels.Admin
+@model CategoryViewModel
+@{
+    ViewData["Title"] = "Add Category";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-card tlob-panel mx-auto" style="max-width: 560px;">
+        <div class="tlob-section" style="border-bottom: 1px dashed var(--line); padding-bottom: 1.2rem; margin-bottom: 1.6rem;">
+            <div>
+                <p class="tlob-eyebrow">New entry</p>
+                <h4 style="margin: 0;">Create category</h4>
+            </div>
+            <a asp-action="Index" class="tlob-btn tlob-btn--ghost tlob-btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Back
+            </a>
+        </div>
+
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="tlob-form__summary"></div>
+
+            <div class="tlob-field">
+                <label asp-for="Name"></label>
+                <input asp-for="Name" placeholder="e.g. Smart Home &amp; IoT" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="tlob-field">
+                <label asp-for="Description"></label>
+                <textarea asp-for="Description" rows="4" placeholder="Brief summary of items belonging to this category..."></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-2">
+                <a asp-action="Index" class="tlob-btn tlob-btn--ghost tlob-btn-sm">Cancel</a>
+                <button type="submit" class="tlob-btn tlob-btn-sm">
+                    <i class="bi bi-check2-circle me-1"></i>Save category
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

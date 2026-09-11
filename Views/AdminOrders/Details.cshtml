@@ -1,0 +1,187 @@
+﻿@using _2tlob.Enum
+@using _2tlob.ViewModels.Order
+@model OrderDetailsViewModel
+@{
+    ViewData["Title"] = $"Manage Order #{Model.Order.Id}";
+
+    var pillClass = Model.Order.Status switch
+    {
+        OrderStatus.Pending => "tlob-pill--gold",
+        OrderStatus.Confirmed => "tlob-pill--green",
+        OrderStatus.Shipped => "tlob-pill--green",
+        OrderStatus.Delivered => "tlob-pill--green",
+        OrderStatus.Cancelled => "tlob-pill--brick",
+        _ => "tlob-pill--muted"
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-section" style="margin-bottom: 1.8rem;">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <p class="tlob-eyebrow mb-0">Admin</p>
+                <span class="tlob-pill @pillClass">@Model.Order.Status</span>
+            </div>
+            <h1 style="font: 560 1.85rem/1.2 var(--font-display); margin: .25rem 0 .35rem;">Order #@Model.Order.Id</h1>
+            <p style="color: var(--muted); font-size: .9rem; margin: 0;">
+                Placed @Model.Order.OrderDate.ToString("MMMM dd, yyyy HH:mm") UTC · Customer: <strong style="color: var(--ink);">@Model.Order.Customer.FullName</strong>
+            </p>
+        </div>
+        <a asp-controller="AdminOrders" asp-action="Index" class="tlob-btn tlob-btn--ghost tlob-btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to all orders
+        </a>
+    </div>
+
+    <div class="tlob-grid-detail">
+        <div>
+            <div class="tlob-card tlob-panel mb-4">
+                <div class="tlob-section">
+                    <h3><i class="bi bi-box text-primary me-2"></i>Purchased items (@Model.Items.Sum(i => i.Quantity) total)</h3>
+                    <span class="tlob-pill tlob-pill--muted">@Model.Items.Count() unique SKU(s)</span>
+                </div>
+
+                <div class="tlob-table-wrap">
+                    <table class="tlob-table">
+                        <thead>
+                            <tr>
+                                <th>Product details</th>
+                                <th class="text-center">Unit price</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <img src="@(string.IsNullOrEmpty(item.Product.ImageUrl) ? "/images/placeholder.jpg" : item.Product.ImageUrl)"
+                                                 alt="@item.Product.Name"
+                                                 class="tlob-thumb" />
+                                            <div>
+                                                <div class="fw-semibold small">
+                                                    <a asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductId" style="color: var(--ink); text-decoration: none;" target="_blank">
+                                                        @item.Product.Name <i class="bi bi-box-arrow-up-right text-muted" style="font-size: 0.7rem;"></i>
+                                                    </a>
+                                                </div>
+                                                <div class="text-muted" style="font-size: 0.75rem;">
+                                                    Vendor: <strong style="color: var(--muted);">@item.Product.Seller.FullName</strong>
+                                                    @if (!string.IsNullOrEmpty(item.Product.Seller.Email))
+                                                    {
+                                                        <span>(@item.Product.Seller.Email)</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center small fw-semibold">$@item.UnitPrice.ToString("N2")</td>
+                                    <td class="text-center small"><span class="tlob-pill tlob-pill--muted">@item.Quantity</span></td>
+                                    <td class="text-end small fw-bold" style="color: var(--gold-600);">$@((item.UnitPrice * item.Quantity).ToString("N2"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tlob-card tlob-panel">
+                <h3 class="mb-3"><i class="bi bi-chat-left-text text-primary me-2"></i>Customer special instructions</h3>
+                @if (!string.IsNullOrWhiteSpace(Model.Order.Notes))
+                {
+                    <div class="tlob-row-card small" style="color: var(--muted);">
+                        <i class="bi bi-quote me-1"></i>@Model.Order.Notes
+                    </div>
+                }
+                else
+                {
+                    <p class="small mb-0 fst-italic" style="color: var(--muted);">No additional delivery instructions provided by customer.</p>
+                }
+            </div>
+        </div>
+
+        <div>
+            <div class="tlob-card tlob-panel mb-4">
+                <h3 class="mb-3"><i class="bi bi-truck text-primary me-2"></i>Customer &amp; shipping</h3>
+
+                <div class="mb-3">
+                    <span class="text-muted small d-block">Customer</span>
+                    <span class="fw-semibold" style="color: var(--ink);">@Model.Order.Customer.FullName</span>
+                    <div class="text-muted small">@Model.Order.Customer.Email</div>
+                </div>
+
+                <div class="mb-3">
+                    <span class="text-muted small d-block">Contact phone</span>
+                    <span class="fw-semibold" style="color: var(--ink);"><i class="bi bi-telephone me-1 text-muted"></i>@Model.Order.PhoneNumber</span>
+                </div>
+
+                <div class="mb-0">
+                    <span class="text-muted small d-block">Shipping address</span>
+                    <div class="fw-semibold" style="color: var(--ink);">
+                        @Model.Order.ShippingAddress<br />
+                        <span>@Model.Order.City, @Model.Order.PostalCode</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tlob-card tlob-panel mb-4">
+                <h3 class="mb-3"><i class="bi bi-wallet2 text-primary me-2"></i>Payment summary</h3>
+
+                <div class="tlob-summary-row">
+                    <span>Items subtotal</span>
+                    <strong>$@Model.Order.TotalAmount.ToString("N2")</strong>
+                </div>
+                <div class="tlob-summary-row">
+                    <span>Standard delivery</span>
+                    <strong style="color: var(--green-700);">FREE</strong>
+                </div>
+                <div class="tlob-summary-total">
+                    <span class="fw-bold">Order total</span>
+                    <span class="amount">$@Model.Order.TotalAmount.ToString("N2")</span>
+                </div>
+            </div>
+
+            <div class="tlob-card tlob-panel">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-0" style="font-family: var(--font-display);">Admin order actions</h6>
+                        <span class="text-muted" style="font-size: 0.75rem;">Platform order management</span>
+                    </div>
+                </div>
+
+                <form asp-controller="AdminOrders" asp-action="UpdateStatus" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@Model.Order.Id" />
+
+                    <div class="tlob-field">
+                        <label>Update status</label>
+                        <select name="status" @(Model.Order.Status == OrderStatus.Cancelled ? "disabled" : "")>
+                            <option value="@OrderStatus.Pending" selected="@(Model.Order.Status == OrderStatus.Pending)">Pending</option>
+                            <option value="@OrderStatus.Confirmed" selected="@(Model.Order.Status == OrderStatus.Confirmed)">Confirmed</option>
+                            <option value="@OrderStatus.Shipped" selected="@(Model.Order.Status == OrderStatus.Shipped)">Shipped</option>
+                            <option value="@OrderStatus.Delivered" selected="@(Model.Order.Status == OrderStatus.Delivered)">Delivered</option>
+                            <option value="@OrderStatus.Cancelled" selected="@(Model.Order.Status == OrderStatus.Cancelled)">Cancelled</option>
+                        </select>
+                    </div>
+
+                    @if (Model.Order.Status != OrderStatus.Cancelled)
+                    {
+                        <button type="submit" class="tlob-btn tlob-btn-sm mt-2" style="width: 100% !important;">
+                            <i class="bi bi-check2-circle me-1"></i>Save status change
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="tlob-callout tlob-callout--brick mt-2">
+                            <i class="bi bi-info-circle me-1"></i>This order has been cancelled and finalized.
+                        </div>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

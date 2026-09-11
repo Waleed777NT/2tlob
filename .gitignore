@@ -1,0 +1,21 @@
+## Build and Output Folders
+bin/
+obj/
+out/
+
+## Visual Studio & IDE Folders
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## OS Generated Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## Logs and Secrets
+*.log
+appsettings.Production.json

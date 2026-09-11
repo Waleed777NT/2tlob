@@ -1,0 +1,127 @@
+﻿@using _2tlob.Enum
+@using _2tlob.ViewModels.Admin
+@model UserManagementViewModel
+@{
+    ViewData["Title"] = "User Management";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-page-head">
+        <p class="tlob-eyebrow">Admin</p>
+        <h1>User governance</h1>
+        <p>Manage customer accounts, seller authorizations, and enforce suspension policies.</p>
+    </div>
+
+    <div class="tlob-card tlob-filter-bar">
+        <form method="get" class="d-flex flex-wrap gap-4 align-items-end w-100">
+            <div class="tlob-field">
+                <label>Search</label>
+                <input type="text" name="search" placeholder="Search by name or email..." value="@Model.SearchTerm" />
+            </div>
+            <div class="tlob-field">
+                <label>Role</label>
+                <select name="role">
+                    <option value="">All roles</option>
+                    <option value="Customer" selected="@(Model.SelectedRole == "Customer")">Customer</option>
+                    <option value="Seller" selected="@(Model.SelectedRole == "Seller")">Seller</option>
+                    <option value="Admin" selected="@(Model.SelectedRole == "Admin")">Admin</option>
+                </select>
+            </div>
+            <div class="tlob-field">
+                <label>Status</label>
+                <select name="status">
+                    <option value="">All statuses</option>
+                    <option value="@UserStatus.Active" selected="@(Model.SelectedStatus == UserStatus.Active)">Active</option>
+                    <option value="@UserStatus.Suspended" selected="@(Model.SelectedStatus == UserStatus.Suspended)">Suspended</option>
+                </select>
+            </div>
+            <button type="submit" class="tlob-btn tlob-btn-sm">Filter</button>
+        </form>
+    </div>
+
+    <div class="tlob-card tlob-panel">
+        <div class="tlob-table-wrap">
+            <table class="tlob-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Account status</th>
+                        <th>Registered</th>
+                        <th>Activity</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Users)
+                    {
+                        var rolePill = user.Role == "Admin" ? "tlob-pill--brick" : user.Role == "Seller" ? "tlob-pill--gold" : "tlob-pill--green";
+
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="tlob-avatar">@(user.FullName.Length > 0 ? user.FullName.Substring(0, 1).ToUpper() : "U")</div>
+                                    <div>
+                                        <div class="fw-semibold">@user.FullName</div>
+                                        <div class="text-muted small">@user.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="tlob-pill @rolePill">@user.Role</span></td>
+                            <td>
+                                @if (user.Status == UserStatus.Active)
+                                {
+                                    <span class="tlob-stamp--active">ACTIVE</span>
+                                }
+                                else
+                                {
+                                    <span class="tlob-stamp">SUSPENDED</span>
+                                }
+                            </td>
+                            <td class="small text-muted">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td class="small text-muted">
+                                @if (user.Role == "Seller")
+                                {
+                                    <span>@user.ProductCount products listed</span>
+                                }
+                                else
+                                {
+                                    <span>@user.OrderCount orders placed</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (user.IsAdmin)
+                                {
+                                    <span class="tlob-pill tlob-pill--muted">System admin</span>
+                                }
+                                else
+                                {
+                                    <form asp-action="ToggleUserStatus" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@user.Id" />
+                                        @if (user.Status == UserStatus.Active)
+                                        {
+                                            <button type="submit" class="tlob-btn tlob-btn--danger tlob-btn-sm" onclick="return confirm('Are you sure you want to suspend @user.FullName? They will be signed out and unable to log in.');">
+                                                <i class="bi bi-slash-circle me-1"></i>Suspend
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="tlob-btn tlob-btn--success tlob-btn-sm" onclick="return confirm('Activate @user.FullName?');">
+                                                <i class="bi bi-check-circle me-1"></i>Activate
+                                            </button>
+                                        }
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

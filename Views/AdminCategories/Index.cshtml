@@ -1,0 +1,87 @@
+﻿@using _2tlob.ViewModels.Admin
+@model IEnumerable<CategoryViewModel>
+@{
+    ViewData["Title"] = "Manage Categories";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-section" style="margin-bottom: 1.8rem;">
+        <div>
+            <p class="tlob-eyebrow">Admin</p>
+            <h1 style="font: 560 1.85rem/1.2 var(--font-display); margin: .25rem 0 .35rem;">Product categories</h1>
+            <p style="color: var(--muted); font-size: .9rem; margin: 0;">Organize 2tlob's taxonomy and product catalogs.</p>
+        </div>
+        <a asp-action="Create" class="tlob-btn tlob-btn-sm">
+            <i class="bi bi-plus-circle-fill me-1"></i>Add category
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="tlob-card tlob-empty">
+            <i class="bi bi-tags" style="font-size: 2.5rem; color: var(--line);"></i>
+            <h4>No categories yet</h4>
+            <p class="mb-0">Add your first category to start organizing products.</p>
+        </div>
+    }
+    else
+    {
+        <div class="tlob-card tlob-panel">
+            <div class="tlob-table-wrap">
+                <table class="tlob-table">
+                    <thead>
+                        <tr>
+                            <th>Category name</th>
+                            <th>Description</th>
+                            <th>Associated products</th>
+                            <th>Created</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cat in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">@cat.Name</td>
+                                <td class="small text-muted" style="max-width: 350px;">@cat.Description</td>
+                                <td>
+                                    <span class="tlob-pill @(cat.ProductCount > 0 ? "tlob-pill--green" : "tlob-pill--muted")">
+                                        @cat.ProductCount products
+                                    </span>
+                                </td>
+                                <td class="small text-muted">@cat.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-2">
+                                        <a asp-action="Edit" asp-route-id="@cat.Id" class="tlob-icon-btn" title="Edit category">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        @if (cat.ProductCount == 0)
+                                        {
+                                            <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this category?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@cat.Id" />
+                                                <button type="submit" class="tlob-icon-btn tlob-icon-btn--danger" title="Delete category" style="border:1.5px solid var(--line); background:transparent;">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button class="tlob-icon-btn disabled" disabled title="Cannot delete category containing active products">
+                                                <i class="bi bi-lock"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

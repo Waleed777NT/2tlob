@@ -1,0 +1,107 @@
+﻿@model IEnumerable<Product>
+@{
+    ViewData["Title"] = "Admin Products Moderation";
+    var categories = ViewBag.Categories as IEnumerable<Category> ?? new List<Category>();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-page-head">
+        <p class="tlob-eyebrow">Admin</p>
+        <h1>Products moderation</h1>
+        <p>Review active listings and remove non-compliant or inappropriate items.</p>
+    </div>
+
+    <div class="tlob-card tlob-filter-bar">
+        <form method="get" class="d-flex flex-wrap gap-4 align-items-end w-100">
+            <div class="tlob-field">
+                <label>Search</label>
+                <input type="text" name="search" placeholder="Search by title or vendor name..." value="@ViewBag.Search" />
+            </div>
+            <div class="tlob-field">
+                <label>Category</label>
+                <select name="categoryId">
+                    <option value="">All categories</option>
+                    @foreach (var cat in categories)
+                    {
+                        <option value="@cat.Id" selected="@(ViewBag.CategoryId == cat.Id)">@cat.Name</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="tlob-btn tlob-btn-sm">Filter</button>
+        </form>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="tlob-card tlob-empty">
+            <i class="bi bi-box-seam" style="font-size: 2.5rem; color: var(--line);"></i>
+            <h4>No products found</h4>
+            <p class="mb-0">Try a different search term or category.</p>
+        </div>
+    }
+    else
+    {
+        <div class="tlob-card tlob-panel">
+            <div class="tlob-table-wrap">
+                <table class="tlob-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Seller / vendor</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Reviews</th>
+                            <th class="text-end">Moderation action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="@p.ImageUrl" alt="@p.Name" class="tlob-thumb" />
+                                        <div>
+                                            <div class="fw-semibold small">
+                                                <a asp-controller="Product" asp-action="Details" asp-route-id="@p.Id" target="_blank" style="color: var(--ink); text-decoration: none;">
+                                                    @p.Name <i class="bi bi-box-arrow-up-right text-muted" style="font-size: 0.7rem;"></i>
+                                                </a>
+                                            </div>
+                                            <div class="text-muted small">Listed @p.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="tlob-pill tlob-pill--muted">@p.Category.Name</span></td>
+                                <td>
+                                    <div class="small fw-semibold">@p.Seller.FullName</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">@p.Seller.Email</div>
+                                </td>
+                                <td class="fw-bold" style="color: var(--gold-600);">$@p.Price.ToString("N2")</td>
+                                <td>
+                                    <span class="tlob-pill @(p.AvailableQuantity > 0 ? "tlob-pill--green" : "tlob-pill--brick")">
+                                        @p.AvailableQuantity in stock
+                                    </span>
+                                </td>
+                                <td class="small">@p.Reviews.Count reviews</td>
+                                <td class="text-end">
+                                    <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('As an Administrator, are you sure you want to permanently remove this product listing?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@p.Id" />
+                                        <button type="submit" class="tlob-btn tlob-btn--danger tlob-btn-sm">
+                                            <i class="bi bi-trash me-1"></i>Remove listing
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,42 @@
+﻿@{
+    ViewData["Title"] = "403 - Access Denied";
+    var reason = ViewBag.Reason as string;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-denied">
+        <div class="tlob-denied__card">
+            <div class="tlob-denied__bars" aria-hidden="true">
+                <span style="height:56px;"></span>
+                <span style="height:40px;"></span>
+                <span style="height:56px;"></span>
+                <span style="height:40px;"></span>
+                <span style="height:56px;"></span>
+            </div>
+            <p class="tlob-denied__code">403 · ACCESS DENIED</p>
+
+            @if (reason == "suspended")
+            {
+                <h1>This account is suspended</h1>
+                <p>An administrator suspended this account for a security or policy reason, and you've been signed out. Reach out to support if you think this is a mistake.</p>
+            }
+            else
+            {
+                <h1>This counter isn't yours to open</h1>
+                <p>Your account doesn't have permission for this page, or it belongs to another vendor's stall.</p>
+            }
+
+            <div class="tlob-denied__actions">
+                <a asp-controller="Home" asp-action="Index" class="tlob-btn">Return to homepage</a>
+                @if (reason == "suspended")
+                {
+                    <a asp-controller="Contact" asp-action="Index" asp-route-reason="suspended" class="tlob-btn--ghost tlob-btn">Contact admin</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

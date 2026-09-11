@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Welcome";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <section class="tlob-hero">
+        <span class="tlob-hero__mark">2tlob</span>
+        <h1>Need anything? Then 2tlob.</h1>
+        <p class="tlob-hero__sub">Once you're ready, we're ready to go — every verified vendor, one counter.</p>
+        <a asp-controller="Product" asp-action="Index" class="tlob-btn">Browse products</a>
+        <div class="tlob-scallop" aria-hidden="true"></div>
+    </section>
+</div>

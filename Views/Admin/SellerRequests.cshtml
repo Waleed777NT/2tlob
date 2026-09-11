@@ -1,0 +1,138 @@
+﻿@using _2tlob.Enum
+@using _2tlob.Models
+@model IEnumerable<SellerRequest>
+@{
+    ViewData["Title"] = "Seller Requests";
+    var requests = Model.ToList();
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-shop text-primary me-2"></i>Seller Requests</h2>
+        <p class="text-muted mb-0">@requests.Count(r => r.Status == RequestStatus.Pending) pending out of @requests.Count total application(s).</p>
+    </div>
+    <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Applicant</th>
+                    <th>Business</th>
+                    <th>Reason</th>
+                    <th>Requested</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!requests.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            No seller applications yet.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var request in requests)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@request.User?.FullName</div>
+                                <div class="text-muted small">@request.User?.Email</div>
+                                @if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+                                {
+                                    <div class="text-muted small"><i class="bi bi-telephone me-1"></i>@request.PhoneNumber</div>
+                                }
+                            </td>
+                            <td>@request.BusinessName</td>
+                            <td>
+                                <span class="d-inline-block text-truncate" style="max-width: 220px;" title="@request.Reason">
+                                    @request.Reason
+                                </span>
+                            </td>
+                            <td>@request.RequestedAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <span class="badge bg-@(request.Status switch
+                                      {
+                                          RequestStatus.Pending => "warning text-dark",
+                                          RequestStatus.Approved => "success",
+                                          RequestStatus.Rejected => "danger",
+                                          _ => "secondary"
+                                      })">@request.Status</span>
+                                @if (request.Status != RequestStatus.Pending && request.ReviewedAt.HasValue)
+                                {
+                                    <div class="text-muted small mt-1">on @request.ReviewedAt.Value.ToString("MMM dd, yyyy")</div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(request.AdminNotes))
+                                {
+                                    <div class="text-muted small fst-italic mt-1" title="@request.AdminNotes">
+                                        "@(request.AdminNotes.Length > 40 ? request.AdminNotes.Substring(0, 40) + "…" : request.AdminNotes)"
+                                    </div>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (request.Status == RequestStatus.Pending)
+                                {
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <form asp-action="ApproveSellerRequest" method="post" class="d-inline"
+                                              onsubmit="return confirm('Approve @request.BusinessName as a seller?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@request.Id" />
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="bi bi-check-lg"></i> Approve
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal-@request.Id">
+                                            <i class="bi bi-x-lg"></i> Reject
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">No actions</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@foreach (var request in requests.Where(r => r.Status == RequestStatus.Pending))
+{
+    <div class="modal fade" id="rejectModal-@request.Id" tabindex="-1" aria-labelledby="rejectModalLabel-@request.Id" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="RejectSellerRequest" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@request.Id" />
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="rejectModalLabel-@request.Id">Reject application</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted small">
+                            Rejecting <strong>@request.BusinessName</strong> submitted by @request.User?.FullName.
+                        </p>
+                        <label class="form-label small text-muted">Note (optional, kept for internal records)</label>
+                        <textarea name="adminNotes" class="form-control" rows="3" placeholder="Reason for rejection..."></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Reject Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

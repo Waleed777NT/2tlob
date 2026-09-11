@@ -1,0 +1,70 @@
+﻿@using _2tlob.ViewModels.Account
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Create an Account";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-auth">
+        <aside class="tlob-auth__brand">
+            <div class="tlob-auth__mark">2tlob</div>
+            <div class="tlob-auth__brand-mid">
+                <h1>Open your<br />own tab.</h1>
+                <p>Create a customer account to buy from every verified vendor on 2tlob — one login, every stall.</p>
+            </div>
+            <div class="tlob-scallop" aria-hidden="true"></div>
+        </aside>
+
+        <section class="tlob-auth__form">
+            <div class="tlob-auth__form-inner">
+                <p class="tlob-eyebrow">Account</p>
+                <h2>Create your account</h2>
+                <p class="tlob-auth__sub">Takes under a minute. You can apply to sell later from your profile.</p>
+
+                <form asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="tlob-form__summary"></div>
+
+                    <div class="tlob-field">
+                        <label asp-for="FullName"></label>
+                        <input asp-for="FullName" placeholder="e.g. Ali Ahmed" autofocus autocomplete="name" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="tlob-field">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" placeholder="name@example.com" autocomplete="email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="tlob-field">
+                        <label asp-for="Password"></label>
+                        <input asp-for="Password" placeholder="••••••••" autocomplete="new-password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="tlob-field">
+                        <label asp-for="ConfirmPassword"></label>
+                        <input asp-for="ConfirmPassword" placeholder="••••••••" autocomplete="new-password" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="tlob-btn">Create account</button>
+
+                    <p class="tlob-auth__switch">
+                        Already have an account?
+                        <a asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]">Sign in</a>
+                    </p>
+                </form>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

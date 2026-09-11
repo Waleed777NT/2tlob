@@ -1,0 +1,94 @@
+﻿@using _2tlob.Enum
+@using _2tlob.ViewModels.Account
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-profile">
+        <div>
+            <div class="tlob-id">
+                <div class="tlob-id__monogram">
+                    @(Model.FullName.Length > 0 ? Model.FullName.Substring(0, 1).ToUpper() : "U")
+                </div>
+                <h3 class="tlob-id__name">@Model.FullName</h3>
+                <p class="tlob-id__email">@Model.Email</p>
+
+                <div>
+                    <span class="tlob-seal">@Model.Role</span>
+                    @if (Model.Status == UserStatus.Active)
+                    {
+                        <span class="tlob-stamp tlob-stamp--active">ACTIVE</span>
+                    }
+                    else
+                    {
+                        <span class="tlob-stamp">SUSPENDED</span>
+                    }
+                </div>
+
+                <div class="tlob-id__stats">
+                    <div><span>Member since</span><span>@Model.CreatedAt.ToString("MMM dd, yyyy")</span></div>
+                    <div><span>Total orders</span><span>@Model.TotalOrders</span></div>
+                    <div><span>Wishlist items</span><span>@Model.WishlistCount</span></div>
+                </div>
+            </div>
+
+            @if (Model.Role == "Customer")
+            {
+                <div class="tlob-card tlob-note">
+                    <h5>Become a seller</h5>
+                    @if (Model.PendingSellerRequest != null)
+                    {
+                        <div class="tlob-pending">
+                            Your application (<strong>@Model.PendingSellerRequest.BusinessName</strong>) is pending review — submitted @Model.PendingSellerRequest.RequestedAt.ToString("MMM dd, yyyy").
+                        </div>
+                    }
+                    else
+                    {
+                        <p>Want to sell your own merchandise on 2tlob? Submit your store application for admin approval.</p>
+                        <a asp-controller="Seller" asp-action="RequestSeller" class="tlob-btn tlob-btn--ghost">Apply for a seller account</a>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="tlob-card tlob-panel">
+            <h4>Account details</h4>
+
+            <form asp-action="Profile" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="tlob-form__summary"></div>
+
+                <div class="tlob-field">
+                    <label asp-for="FullName"></label>
+                    <input asp-for="FullName" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+
+                <div class="tlob-field">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" readonly />
+                </div>
+
+                <div class="tlob-field">
+                    <label asp-for="PhoneNumber"></label>
+                    <input asp-for="PhoneNumber" placeholder="+20 100 000 0000" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="submit" class="tlob-btn" style="width:auto; padding-inline:1.6rem;">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
