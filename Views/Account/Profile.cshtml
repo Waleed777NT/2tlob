@@ -33,8 +33,8 @@
 
                 <div class="tlob-id__stats">
                     <div><span>Member since</span><span>@Model.CreatedAt.ToString("MMM dd, yyyy")</span></div>
-                    <div><span>Total orders</span><span>@Model.TotalOrders</span></div>
-                    <div><span>Wishlist items</span><span>@Model.WishlistCount</span></div>
+                    <div><span>Total orders</span><span><a asp-controller="Orders" asp-action="MyOrders" style="color: var(--ink); text-decoration: underline;">@Model.TotalOrders</a></span></div>
+                    <div><span>Wishlist items</span><span><a asp-controller="Wishlist" asp-action="Index" style="color: var(--ink); text-decoration: underline;">@Model.WishlistCount</a></span></div>
                 </div>
             </div>
 

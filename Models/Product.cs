@@ -25,7 +25,7 @@ namespace _2tlob.Models
         public int AvailableQuantity { get; set; }
 
         [StringLength(500)]
-        public string ImageUrl { get; set; } = "/images/products/";
+        public string? ImageUrl { get; set; } = "/images/products/default.jpg";
 
         public int CategoryId { get; set; }
         public virtual Category Category { get; set; } = null!;

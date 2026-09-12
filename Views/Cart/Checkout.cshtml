@@ -1,0 +1,99 @@
+﻿@using _2tlob.ViewModels.Checkout
+@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-page-head">
+        <p class="tlob-eyebrow">Marketplace</p>
+        <h1>Checkout</h1>
+        <p>Confirm your delivery details to place the order.</p>
+    </div>
+
+    <div class="tlob-grid-detail">
+        <div class="tlob-card tlob-panel">
+            <h4 class="mb-3">Shipping details</h4>
+
+            <form asp-controller="Cart" asp-action="Checkout" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="tlob-form__summary"></div>
+
+                <div class="tlob-field">
+                    <label asp-for="ShippingAddress"></label>
+                    <input asp-for="ShippingAddress" placeholder="Street, building, apartment..." />
+                    <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+                </div>
+
+                <div class="tlob-cols-2">
+                    <div class="tlob-field">
+                        <label asp-for="City"></label>
+                        <input asp-for="City" placeholder="City" />
+                        <span asp-validation-for="City" class="text-danger"></span>
+                    </div>
+                    <div class="tlob-field">
+                        <label asp-for="PostalCode"></label>
+                        <input asp-for="PostalCode" placeholder="Postal code" />
+                        <span asp-validation-for="PostalCode" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="tlob-field">
+                    <label asp-for="PhoneNumber"></label>
+                    <input asp-for="PhoneNumber" placeholder="+20 100 000 0000" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="tlob-field">
+                    <label asp-for="Notes"></label>
+                    <textarea asp-for="Notes" rows="3" placeholder="Delivery instructions, landmark, etc. (optional)"></textarea>
+                    <span asp-validation-for="Notes" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="tlob-btn mt-2">
+                    <i class="bi bi-bag-check me-1"></i>Place order
+                </button>
+            </form>
+        </div>
+
+        <div>
+            <div class="tlob-card tlob-panel">
+                <h4 class="mb-3">Order summary</h4>
+
+                @foreach (var item in Model.Cart!.Items)
+                {
+                    <div class="d-flex align-items-center gap-2 py-2 border-bottom">
+                        <img src="@(string.IsNullOrEmpty(item.ProductImageUrl) ? "/images/placeholder.jpg" : item.ProductImageUrl)"
+                             alt="@item.ProductName" class="tlob-thumb" />
+                        <div class="flex-grow-1">
+                            <div class="small fw-semibold">@item.ProductName</div>
+                            <div class="text-muted" style="font-size: .75rem;">Qty @item.Quantity &times; @item.UnitPrice.ToString("C")</div>
+                        </div>
+                        <div class="small fw-bold" style="color: var(--gold-600);">@item.LineTotal.ToString("C")</div>
+                    </div>
+                }
+
+                <div class="tlob-summary-row mt-2">
+                    <span>Subtotal</span>
+                    <strong>@Model.Cart.SubTotal.ToString("C")</strong>
+                </div>
+                <div class="tlob-summary-row">
+                    <span>Shipping</span>
+                    <strong style="color: var(--green-700);">FREE</strong>
+                </div>
+                <div class="tlob-summary-total">
+                    <span class="fw-bold">Total</span>
+                    <span class="amount">@Model.Cart.Total.ToString("C")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

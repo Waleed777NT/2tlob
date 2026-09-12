@@ -1,6 +1,34 @@
+@inject Microsoft.AspNetCore.Identity.UserManager<_2tlob.Models.ApplicationUser> UserManager
+@inject _2tlob.Services.Interfaces.ICartService CartService
+@inject _2tlob.Services.Interfaces.IWishlistService WishlistService
+@{
+    int cartCount = 0;
+    int wishlistCount = 0;
+    if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        var currentUserId = UserManager.GetUserId(User);
+        if (currentUserId != null)
+        {
+            cartCount = await CartService.GetCartItemCountAsync(currentUserId);
+            wishlistCount = await WishlistService.GetWishlistItemCountAsync(currentUserId);
+        }
+    }
+}
 @if (User.Identity != null && User.Identity.IsAuthenticated)
 {
     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Wishlist" asp-action="Index">
+                <i class="bi bi-heart me-1"></i>Wishlist
+                <span class="badge rounded-pill bg-danger js-wishlist-count @(wishlistCount == 0 ? "d-none" : "")" style="font-size:.65rem;">@wishlistCount</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Cart" asp-action="Index">
+                <i class="bi bi-cart3 me-1"></i>Cart
+                <span class="badge rounded-pill bg-primary js-cart-count @(cartCount == 0 ? "d-none" : "")" style="font-size:.65rem;">@cartCount</span>
+            </a>
+        </li>
         @if (User.IsInRole("Admin"))
         {
             <li class="nav-item dropdown">

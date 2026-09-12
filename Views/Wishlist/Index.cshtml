@@ -1,0 +1,81 @@
+﻿@using _2tlob.ViewModels.Wishlist
+@model WishlistViewModel
+@{
+    ViewData["Title"] = "My Wishlist";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-page-head">
+        <p class="tlob-eyebrow">My account</p>
+        <h1>My wishlist</h1>
+        <p>Products you've saved for later.</p>
+    </div>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="tlob-card tlob-empty">
+            <i class="bi bi-heart" style="font-size: 2.5rem; color: var(--line);"></i>
+            <h4>Your wishlist is empty</h4>
+            <p class="mb-3">Tap the heart icon on any product to save it here.</p>
+            <a asp-controller="Products" asp-action="Index" class="tlob-btn" style="width: auto; padding-inline: 1.6rem;">
+                <i class="bi bi-grid me-1"></i>Browse products
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var item in Model.Items)
+            {
+                <div class="col-md-3 col-sm-6">
+                    <div class="tlob-card h-100 d-flex flex-column">
+                        <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId" class="d-block">
+                            <img src="@(string.IsNullOrEmpty(item.ProductImageUrl) ? "/images/placeholder.jpg" : item.ProductImageUrl)"
+                                 alt="@item.ProductName" style="width:100%; height:180px; object-fit:cover;" />
+                        </a>
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <span class="tlob-pill tlob-pill--muted align-self-start mb-2">@item.CategoryName</span>
+                            <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId"
+                               class="fw-semibold mb-1" style="color: var(--ink); text-decoration: none;">
+                                @item.ProductName
+                            </a>
+                            <p class="fw-bold mb-2" style="color: var(--gold-600);">@item.Price.ToString("C")</p>
+
+                            @if (item.InStock)
+                            {
+                                <span class="tlob-pill tlob-pill--green align-self-start mb-2">In stock</span>
+                            }
+                            else
+                            {
+                                <span class="tlob-pill tlob-pill--brick align-self-start mb-2">Out of stock</span>
+                            }
+
+                            <div class="d-flex gap-2 mt-auto">
+                                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="flex-grow-1">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                    <input type="hidden" name="quantity" value="1" />
+                                    <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Wishlist")" />
+                                    <button type="submit" class="tlob-btn tlob-btn-sm" style="width: 100% !important;" @(item.InStock ? "" : "disabled")>
+                                        <i class="bi bi-cart-plus me-1"></i>Add
+                                    </button>
+                                </form>
+                                <form asp-controller="Wishlist" asp-action="Remove" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                    <button type="submit" class="tlob-icon-btn tlob-icon-btn--danger" title="Remove from wishlist">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

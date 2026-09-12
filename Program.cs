@@ -47,6 +47,24 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.SlidingExpiration = true;
+
+    // Return 401 (instead of a redirect-to-login HTML page) for AJAX/fetch calls,
+    // e.g. the Cart/AddToCart and Wishlist/Toggle fetch() calls on the Product Details page.
+    options.Events.OnRedirectToLogin = context =>
+    {
+        var acceptHeader = context.Request.Headers["Accept"].ToString();
+        bool wantsHtml = acceptHeader.Contains("text/html", StringComparison.OrdinalIgnoreCase);
+        bool isAjax = string.Equals(context.Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
+
+        if (isAjax || (!string.IsNullOrEmpty(acceptHeader) && !wantsHtml))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
 });
 
 // 4. Configure Anti-Forgery
@@ -64,7 +82,7 @@ builder.Services.AddScoped<ISellerService, SellerService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
-//builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ICartService, CartService>();
 //builder.Services.AddScoped<IReviewService, ReviewService>();
 
 // 6. Register MVC Controllers and Views

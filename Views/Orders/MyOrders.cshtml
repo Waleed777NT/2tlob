@@ -1,0 +1,75 @@
+﻿@using _2tlob.Enum
+@model IEnumerable<Order>
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-page-head">
+        <p class="tlob-eyebrow">My account</p>
+        <h1>My orders</h1>
+        <p>Track the status of everything you've ordered on 2tlob.</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="tlob-card tlob-empty">
+            <i class="bi bi-receipt" style="font-size: 2.5rem; color: var(--line);"></i>
+            <h4>No orders yet</h4>
+            <p class="mb-3">Once you place an order, it'll show up here.</p>
+            <a asp-controller="Products" asp-action="Index" class="tlob-btn" style="width: auto; padding-inline: 1.6rem;">
+                <i class="bi bi-grid me-1"></i>Browse products
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="tlob-card tlob-panel">
+            <div class="tlob-table-wrap">
+                <table class="tlob-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            var pillClass = order.Status switch
+                            {
+                                OrderStatus.Pending => "tlob-pill--gold",
+                                OrderStatus.Confirmed => "tlob-pill--green",
+                                OrderStatus.Shipped => "tlob-pill--green",
+                                OrderStatus.Delivered => "tlob-pill--green",
+                                OrderStatus.Cancelled => "tlob-pill--brick",
+                                _ => "tlob-pill--muted"
+                            };
+
+                            <tr>
+                                <td class="fw-bold" style="color: var(--green-700);">#@order.Id</td>
+                                <td class="small text-muted">@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                <td class="small">@order.Items.Sum(i => i.Quantity) items</td>
+                                <td class="fw-bold">@order.TotalAmount.ToString("C")</td>
+                                <td><span class="tlob-pill @pillClass">@order.Status</span></td>
+                                <td class="text-end">
+                                    <a asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id" class="tlob-btn tlob-btn--ghost tlob-btn-sm">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

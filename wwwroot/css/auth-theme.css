@@ -854,3 +854,115 @@ table.tlob-table {
         width: auto;
         padding-inline: 1.5rem;
     }
+
+/* ---------- order/checkout detail layout (Cart, Checkout, Orders) ---------- */
+.tlob-grid-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .tlob-grid-detail {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tlob-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .55rem 0;
+    font-size: .88rem;
+    color: var(--muted);
+}
+
+    .tlob-summary-row strong {
+        color: var(--ink);
+    }
+
+.tlob-summary-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: .6rem;
+    padding-top: .9rem;
+    border-top: 1.5px solid var(--green-700);
+    font-size: 1rem;
+}
+
+    .tlob-summary-total .amount {
+        font: 560 1.3rem/1 var(--font-display);
+        color: var(--gold-600);
+    }
+
+.tlob-callout {
+    display: flex;
+    align-items: flex-start;
+    gap: .6rem;
+    border-radius: 4px;
+    padding: .85rem 1rem;
+    font-size: .85rem;
+    line-height: 1.5;
+    border-left: 3px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+}
+
+.tlob-callout--brick {
+    border-left-color: var(--brick);
+    background: #f7e9e5;
+    color: var(--brick);
+}
+
+.tlob-callout--gold {
+    border-left-color: var(--gold-600);
+    background: var(--gold-100);
+    color: var(--green-900);
+}
+
+/* ---------- cart quantity stepper ---------- */
+.tlob-qty {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: .2rem .3rem;
+}
+
+    .tlob-qty form {
+        display: contents;
+    }
+
+    .tlob-qty button {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: var(--green-700);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color .15s ease;
+    }
+
+        .tlob-qty button:hover {
+            background: var(--gold-100);
+        }
+
+        .tlob-qty button:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+    .tlob-qty span {
+        min-width: 20px;
+        text-align: center;
+        font-weight: 600;
+        font-size: .9rem;
+    }
