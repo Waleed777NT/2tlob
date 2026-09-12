@@ -146,47 +146,9 @@
                 }
 
                 <p class="mt-3">@Model.Product.Description</p>
-
-                
             </div>
         </div>
     </div>
 
-    <div class="tlob-card tlob-panel mt-4">
-        <h4 class="mb-3">Reviews (@Model.ReviewCount)</h4>
-
-        @if (!Model.Reviews.Any())
-        {
-            <p class="text-muted mb-0">No reviews yet.</p>
-        }
-        else
-        {
-            <div class="tlob-table-wrap">
-                @foreach (var review in Model.Reviews)
-                {
-                    <div class="d-flex align-items-start gap-2 py-3 border-bottom">
-                        <div class="tlob-avatar">@(review.Customer?.UserName?.Length > 0 ? review.Customer.UserName.Substring(0, 1).ToUpper() : "U")</div>
-                        <div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="fw-semibold">@review.Customer?.UserName</span>
-                                <span class="text-warning small">@(new string('★', review.Rating))@(new string('☆', 5 - review.Rating))</span>
-                            </div>
-                            <p class="mb-1">@review.Comment</p>
-                            <span class="text-muted small">@review.CreatedAt.ToString("MMM dd, yyyy")</span>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-
-        @if (Model.CanReview)
-        {
-            <div class="tlob-card mt-3 p-3">
-                <p class="mb-0 text-muted">You're eligible to review this product (form handled by the review feature).</p>
-            </div>
-        }
-    </div>
+    <partial name="_ProductReviews" model="Model" />
 </div>
-
-
-

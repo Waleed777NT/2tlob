@@ -1,0 +1,50 @@
+﻿@model _2tlob.ViewModels.Seller.SellerDashboardViewModel
+
+@{
+    ViewData["Title"] = "Seller Dashboard";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Seller Dashboard</h2>
+        <div>
+            <a asp-action="MyProducts" class="btn btn-outline-primary me-2">Manage Products</a>
+            <a asp-action="MyOrders" class="btn btn-outline-secondary">Manage Orders</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Total Products</h6>
+                    <h3 class="card-text fw-bold">@Model.TotalProducts</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Low Stock Alert</h6>
+                    <h3 class="card-text fw-bold">@Model.LowStockProducts</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Total Orders</h6>
+                    <h3 class="card-text fw-bold">@Model.TotalOrdersCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Total Revenue</h6>
+                    <h3 class="card-text fw-bold">$@Model.TotalSalesRevenue.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
