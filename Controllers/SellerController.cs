@@ -32,7 +32,8 @@ namespace _2tlob.Controllers
         private string CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
         [HttpGet]
-        public async Task<IActionResult> RequestToJoin()
+        [ActionName("RequestSeller")]
+        public async Task<IActionResult> RequestSellerGet()
         {
             if (User.IsInRole("Seller"))
             {
@@ -46,16 +47,17 @@ namespace _2tlob.Controllers
                 return View("RequestStatus");
             }
 
-            return View(new SellerRequestCreateViewModel());
+            return View("RequestToJoin", new SellerRequestCreateViewModel());
         }
 
         [HttpPost]
+        [ActionName("RequestSeller")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RequestToJoin(SellerRequestCreateViewModel model)
+        public async Task<IActionResult> RequestSellerPost(SellerRequestCreateViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                return View(model);
+                return View("RequestToJoin", model);
             }
 
             var result = await _sellerService.SubmitRequestAsync(CurrentUserId, model);
@@ -66,8 +68,15 @@ namespace _2tlob.Controllers
             }
 
             ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Failed to submit request.");
-            return View(model);
+            return View("RequestToJoin", model);
         }
+
+        [HttpGet]
+        public Task<IActionResult> RequestToJoin() => RequestSellerGet();
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public Task<IActionResult> RequestToJoin(SellerRequestCreateViewModel model) => RequestSellerPost(model);
 
         [Authorize(Roles = "Seller")]
         public async Task<IActionResult> Dashboard()
@@ -242,7 +251,7 @@ namespace _2tlob.Controllers
                 status,
                 CurrentUserId,
                 isAdmin: false,
-                isSeller: true);
+                isSeller: true);    
 
             if (result.Success)
             {
