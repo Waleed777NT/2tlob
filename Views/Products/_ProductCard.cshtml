@@ -1,0 +1,51 @@
+﻿@model _2tlob.Models.Product
+
+<div class="col-md-3 col-sm-6 mb-4">
+    <div class="custom-card h-100">
+        <a asp-controller="Products" asp-action="Details" asp-route-id="@Model.Id" class="d-block text-decoration-none position-relative">
+            <div class="product-img-container">
+                <img src="@Model.ImageUrl" alt="@Model.Name" class="d-block w-100 h-100" style="object-fit: cover;" />
+            </div>
+        </a>
+
+        <form asp-controller="Wishlist" asp-action="Toggle" method="post"
+              class="position-absolute top-0 end-0 m-2">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="productId" value="@Model.Id" />
+            <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Products")" />
+            <button type="submit" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Add to wishlist"
+                    style="width:34px;height:34px;">
+                <i class="bi bi-heart"></i>
+            </button>
+        </form>
+
+        <div class="p-3 d-flex flex-column">
+            <a asp-controller="Products" asp-action="Details" asp-route-id="@Model.Id" class="text-decoration-none text-dark d-block">
+                <span class="badge-category align-self-start mb-2 d-inline-block">@Model.Category?.Name</span>
+                <h6 class="mb-1">@Model.Name</h6>
+                <p class="fw-bold text-primary mb-2">@Model.Price.ToString("C")</p>
+
+                @if (Model.AvailableQuantity <= 0)
+                {
+                    <span class="badge badge-status-cancelled align-self-start mb-2">Out of stock</span>
+                }
+                else
+                {
+                    <span class="badge badge-status-delivered align-self-start mb-2">In stock: @Model.AvailableQuantity</span>
+                }
+            </a>
+
+            <div class="d-flex gap-2 mt-auto">
+                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="flex-grow-1">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@Model.Id" />
+                    <input type="hidden" name="quantity" value="1" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Products")" />
+                    <button type="submit" class="btn btn-primary-custom w-100" @(Model.AvailableQuantity <= 0 ? "disabled" : "")>
+                        <i class="bi bi-cart-plus me-1"></i>Add
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

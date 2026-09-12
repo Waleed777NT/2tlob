@@ -28,6 +28,15 @@
     color: var(--ink);
 }
 
+.tlob-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+}
+
     /* ---------- shared bits ---------- */
     .tlob-scope a {
         text-decoration: none;
@@ -166,6 +175,7 @@
     overflow: hidden;
     box-shadow: 0 24px 60px -30px rgba(16, 41, 34, .35);
 }
+
 
 .tlob-auth__brand {
     background: linear-gradient(165deg, var(--green-700) 0%, var(--green-900) 100%);
