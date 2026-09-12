@@ -1,0 +1,192 @@
+﻿@model _2tlob.ViewModels.Product.ProductDetailsViewModel
+@{
+    ViewData["Title"] = Model.Product.Name;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-card tlob-panel">
+        <div class="row g-4">
+            <div class="col-md-5">
+                <img src="@Model.Product.ImageUrl" class="img-fluid rounded" alt="@Model.Product.Name" />
+                @if (!Model.IsOwner)
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="button" class="btn btn-primary-custom w-100 js-add-to-cart"
+                                data-product-id="@Model.Product.Id"
+                            @(Model.Product.AvailableQuantity <= 0 ? "disabled" : "")
+                                style="min-height: 48px;">
+                            <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                        </button>
+
+                        <button type="button" class="btn @(Model.IsInWishlist ? "btn-outline-danger" : "btn-outline-secondary") w-100 js-toggle-wishlist"
+                                data-product-id="@Model.Product.Id"
+                                style="min-height: 48px;">
+                            <i class="bi @(Model.IsInWishlist ? "bi-heart-fill" : "bi-heart") me-1 js-wishlist-icon"></i>
+                            <span class="js-wishlist-label">@(Model.IsInWishlist ? "Remove from Wishlist" : "Add to Wishlist")</span>
+                        </button>
+                    </div>
+
+                    @section Scripts {
+                        <script>
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                                                document.querySelectorAll('.js-add-to-cart').forEach(btn => {
+                                                    btn.addEventListener('click', async () => {
+                                                        const productId = btn.dataset.productId;
+                                                        const originalHtml = btn.innerHTML;
+                                                        btn.disabled = true;
+
+                                                        try {
+                                                            const res = await fetch('/Cart/AddToCart', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+                                                                body: `productId=${productId}&quantity=1`
+                                                            });
+
+                                                            if (!res.ok) {
+                                                                throw new Error(`Request failed with status ${res.status}`);
+                                                            }
+
+                                                            const data = await res.json(); // expect { cartCount: number }
+
+                                                            btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Added!';
+                                                            setTimeout(() => { btn.innerHTML = originalHtml; btn.disabled = false; }, 1500);
+
+                                                            // Update navbar cart badge if one exists
+                                                            const cartBadge = document.querySelector('.js-cart-count');
+                                                            if (cartBadge && typeof data.cartCount === 'number') {
+                                                                cartBadge.textContent = data.cartCount;
+                                                                cartBadge.classList.remove('d-none');
+                                                            }
+                                                        } catch (err) {
+                                                            console.error(err);
+                                                            btn.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Failed';
+                                                            setTimeout(() => { btn.innerHTML = originalHtml; btn.disabled = false; }, 2000);
+                                                            alert('Could not add this item to your cart. Please try again.');
+                                                        }
+                                                    });
+                                                });
+
+                                                document.querySelectorAll('.js-toggle-wishlist').forEach(btn => {
+                                                    btn.addEventListener('click', async () => {
+                                                        const productId = btn.dataset.productId;
+                                                        btn.disabled = true;
+
+                                                        try {
+                                                            const res = await fetch('/Wishlist/Toggle', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+                                                                body: `productId=${productId}`
+                                                            });
+
+                                                            if (!res.ok) {
+                                                                throw new Error(`Request failed with status ${res.status}`);
+                                                            }
+
+                                                            const data = await res.json(); // { inWishlist: boolean }
+                                                            const icon = btn.querySelector('.js-wishlist-icon');
+                                                            const label = btn.querySelector('.js-wishlist-label');
+
+                                                            btn.classList.toggle('btn-outline-danger', data.inWishlist);
+                                                            btn.classList.toggle('btn-outline-secondary', !data.inWishlist);
+                                                            icon.className = data.inWishlist ? 'bi bi-heart-fill me-1 js-wishlist-icon' : 'bi bi-heart me-1 js-wishlist-icon';
+                                                            label.textContent = data.inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist';
+                                                        } catch (err) {
+                                                            console.error(err);
+                                                            alert('Could not update your wishlist. Please try again.');
+                                                        } finally {
+                                                            btn.disabled = false;
+                                                        }
+                                                    });
+                                                });
+                                            });
+                        </script>
+                    }
+                }
+                else
+                {
+                    <span class="tlob-pill tlob-pill--muted mt-3 d-inline-block">This is your own listing</span>
+                }
+            </div>
+            <div class="col-md-7">
+                <p class="tlob-eyebrow mb-1">
+                    <a asp-controller="Categories" asp-action="Details" asp-route-id="@Model.Product.CategoryId" class="text-decoration-none">
+                        @Model.Product.Category?.Name
+                    </a>
+                </p>
+                <h1 class="mb-1">@Model.Product.Name</h1>
+                <p class="text-muted small">Sold by @Model.Product.Seller?.UserName</p>
+
+                <div class="mb-2">
+                    <span class="text-warning">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <text>@(i <= Math.Round(Model.AverageRating) ? "★" : "☆")</text>
+                        }
+                    </span>
+                    <span class="text-muted small">(@Model.AverageRating / 5 &middot; @Model.ReviewCount reviews)</span>
+                </div>
+
+                <h3 class="text-primary mb-2">@Model.Product.Price.ToString("C")</h3>
+
+                @if (Model.Product.AvailableQuantity <= 0)
+                {
+                    <span class="tlob-pill tlob-pill--brick">Out of stock</span>
+                }
+                else
+                {
+                    <span class="tlob-pill tlob-pill--green">In stock: @Model.Product.AvailableQuantity</span>
+                }
+
+                <p class="mt-3">@Model.Product.Description</p>
+
+                
+            </div>
+        </div>
+    </div>
+
+    <div class="tlob-card tlob-panel mt-4">
+        <h4 class="mb-3">Reviews (@Model.ReviewCount)</h4>
+
+        @if (!Model.Reviews.Any())
+        {
+            <p class="text-muted mb-0">No reviews yet.</p>
+        }
+        else
+        {
+            <div class="tlob-table-wrap">
+                @foreach (var review in Model.Reviews)
+                {
+                    <div class="d-flex align-items-start gap-2 py-3 border-bottom">
+                        <div class="tlob-avatar">@(review.Customer?.UserName?.Length > 0 ? review.Customer.UserName.Substring(0, 1).ToUpper() : "U")</div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-semibold">@review.Customer?.UserName</span>
+                                <span class="text-warning small">@(new string('★', review.Rating))@(new string('☆', 5 - review.Rating))</span>
+                            </div>
+                            <p class="mb-1">@review.Comment</p>
+                            <span class="text-muted small">@review.CreatedAt.ToString("MMM dd, yyyy")</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Model.CanReview)
+        {
+            <div class="tlob-card mt-3 p-3">
+                <p class="mb-0 text-muted">You're eligible to review this product (form handled by the review feature).</p>
+            </div>
+        }
+    </div>
+</div>
+
+
+

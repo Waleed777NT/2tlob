@@ -1,0 +1,87 @@
+﻿@model _2tlob.ViewModels.Product.ProductListViewModel
+@{
+    ViewData["Title"] = "Browse Products";
+    int totalPages = (int)Math.Ceiling((double)Model.TotalItems / Model.PageSize);
+}
+
+@Html.AntiForgeryToken()
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-page-head">
+        <p class="tlob-eyebrow">Marketplace</p>
+        <h1>Browse products</h1>
+        <p>Search, filter, and sort listings from every seller on 2tlob.</p>
+    </div>
+
+    <div class="tlob-card tlob-filter-bar">
+        <form method="get" class="d-flex flex-wrap gap-4 align-items-end w-100">
+            <div class="tlob-field">
+                <label>Search</label>
+                <input type="text" name="search" placeholder="Search products..." value="@Model.Search" />
+            </div>
+            <div class="tlob-field">
+                <label>Category</label>
+                <select name="categoryId">
+                    <option value="">All categories</option>
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <option value="@cat.Id" selected="@(Model.CategoryId == cat.Id)">@cat.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="tlob-field">
+                <label>Sort by</label>
+                <select name="sortBy">
+                    <option value="" selected="@(string.IsNullOrEmpty(Model.SortBy))">Newest</option>
+                    <option value="price_asc" selected="@(Model.SortBy == "price_asc")">Price: Low to High</option>
+                    <option value="price_desc" selected="@(Model.SortBy == "price_desc")">Price: High to Low</option>
+                    <option value="name_asc" selected="@(Model.SortBy == "name_asc")">Name: A-Z</option>
+                </select>
+            </div>
+            <button type="submit" class="tlob-btn tlob-btn-sm">Apply</button>
+        </form>
+    </div>
+
+    @if (!Model.Products.Any())
+    {
+        <div class="tlob-card tlob-panel text-center py-5">
+            <p class="text-muted mb-0">No products found matching your criteria.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var product in Model.Products)
+            {
+                @await Html.PartialAsync("_ProductCard", product)
+            }
+        </div>
+
+        @if (totalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-search="@Model.Search"
+                               asp-route-categoryId="@Model.CategoryId"
+                               asp-route-sortBy="@Model.SortBy"
+                               asp-route-page="@i">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/product-actions.js" asp-append-version="true"></script>
+}

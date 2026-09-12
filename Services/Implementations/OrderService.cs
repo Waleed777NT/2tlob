@@ -192,10 +192,10 @@ namespace _2tlob.Services.Implementations
                     return (false, "Unauthorized: You do not own this order.");
                 }
 
-                // Can only cancel if order is in Pending status
-                if (order.Status != OrderStatus.Pending)
+                // Can only cancel while the order is still Pending or Confirmed (not yet shipped)
+                if (order.Status != OrderStatus.Pending && order.Status != OrderStatus.Confirmed)
                 {
-                    return (false, $"Cannot cancel order with status '{order.Status}'. Only 'Pending' orders can be cancelled.");
+                    return (false, $"Cannot cancel order with status '{order.Status}'. Only 'Pending' or 'Confirmed' orders can be cancelled.");
                 }
 
                 // Restore stock for all items

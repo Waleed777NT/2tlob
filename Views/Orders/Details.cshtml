@@ -1,0 +1,128 @@
+﻿@using _2tlob.Enum
+@using _2tlob.ViewModels.Order
+@model OrderDetailsViewModel
+@{
+    ViewData["Title"] = $"Order #{Model.Order.Id}";
+
+    var pillClass = Model.Order.Status switch
+    {
+        OrderStatus.Pending => "tlob-pill--gold",
+        OrderStatus.Confirmed => "tlob-pill--green",
+        OrderStatus.Shipped => "tlob-pill--green",
+        OrderStatus.Delivered => "tlob-pill--green",
+        OrderStatus.Cancelled => "tlob-pill--brick",
+        _ => "tlob-pill--muted"
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-section" style="margin-bottom: 1.8rem;">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <p class="tlob-eyebrow mb-0">My account</p>
+                <span class="tlob-pill @pillClass">@Model.Order.Status</span>
+            </div>
+            <h1 style="font: 560 1.85rem/1.2 var(--font-display); margin: .25rem 0 .35rem;">Order #@Model.Order.Id</h1>
+            <p style="color: var(--muted); font-size: .9rem; margin: 0;">
+                Placed @Model.Order.OrderDate.ToString("MMMM dd, yyyy HH:mm")
+            </p>
+        </div>
+        <a asp-controller="Orders" asp-action="MyOrders" class="tlob-btn tlob-btn--ghost tlob-btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to my orders
+        </a>
+    </div>
+
+    <div class="tlob-grid-detail">
+        <div class="tlob-card tlob-panel">
+            <div class="tlob-section">
+                <h3><i class="bi bi-box text-primary me-2"></i>Items (@Model.Items.Sum(i => i.Quantity))</h3>
+            </div>
+
+            <div class="tlob-table-wrap">
+                <table class="tlob-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-center">Unit price</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="@(string.IsNullOrEmpty(item.Product.ImageUrl) ? "/images/placeholder.jpg" : item.Product.ImageUrl)"
+                                             alt="@item.Product.Name" class="tlob-thumb" />
+                                        <div>
+                                            <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId"
+                                               class="fw-semibold small" style="color: var(--ink); text-decoration: none;">
+                                                @item.Product.Name
+                                            </a>
+                                            <div class="text-muted" style="font-size: .75rem;">Sold by @item.Product.Seller?.FullName</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center small fw-semibold">@item.UnitPrice.ToString("C")</td>
+                                <td class="text-center small"><span class="tlob-pill tlob-pill--muted">@item.Quantity</span></td>
+                                <td class="text-end small fw-bold" style="color: var(--gold-600);">@((item.UnitPrice * item.Quantity).ToString("C"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Order.Notes))
+            {
+                <div class="tlob-row-card small mt-3" style="color: var(--muted);">
+                    <i class="bi bi-quote me-1"></i>@Model.Order.Notes
+                </div>
+            }
+        </div>
+
+        <div>
+            <div class="tlob-card tlob-panel mb-4">
+                <h4 class="mb-3">Delivery details</h4>
+                <div class="mb-3">
+                    <span class="text-muted small d-block">Shipping address</span>
+                    <span class="fw-semibold">@Model.Order.ShippingAddress<br />@Model.Order.City, @Model.Order.PostalCode</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Phone</span>
+                    <span class="fw-semibold"><i class="bi bi-telephone me-1 text-muted"></i>@Model.Order.PhoneNumber</span>
+                </div>
+            </div>
+
+            <div class="tlob-card tlob-panel mb-4">
+                <div class="tlob-summary-total" style="margin-top: 0; border-top: none; padding-top: 0;">
+                    <span class="fw-bold">Order total</span>
+                    <span class="amount">@Model.Order.TotalAmount.ToString("C")</span>
+                </div>
+            </div>
+
+            @if (Model.CanCancel)
+            {
+                <form asp-controller="Orders" asp-action="Cancel" asp-route-id="@Model.Order.Id" method="post"
+                      onsubmit="return confirm('Cancel this order? This cannot be undone.');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="tlob-btn tlob-btn--danger">
+                        <i class="bi bi-x-circle me-1"></i>Cancel order
+                    </button>
+                </form>
+            }
+            else if (Model.Order.Status != OrderStatus.Cancelled)
+            {
+                <div class="tlob-callout mt-2">
+                    <i class="bi bi-info-circle mt-1"></i>
+                    <span>This order can no longer be cancelled — it's already @Model.Order.Status.ToString().ToLower().</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>

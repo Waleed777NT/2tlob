@@ -1,0 +1,143 @@
+﻿@using _2tlob.ViewModels.Cart
+@model CartViewModel
+@{
+    ViewData["Title"] = "My Cart";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-page-head">
+        <p class="tlob-eyebrow">Marketplace</p>
+        <h1>Your cart</h1>
+        <p>Review what's in your basket before checking out.</p>
+    </div>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="tlob-card tlob-empty">
+            <i class="bi bi-cart-x" style="font-size: 2.5rem; color: var(--line);"></i>
+            <h4>Your cart is empty</h4>
+            <p class="mb-3">Looks like you haven't added anything yet.</p>
+            <a asp-controller="Products" asp-action="Index" class="tlob-btn" style="width: auto; padding-inline: 1.6rem;">
+                <i class="bi bi-grid me-1"></i>Browse products
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="tlob-grid-detail">
+            <div class="tlob-card tlob-panel">
+                <h4 class="mb-3">Items (@Model.TotalItemCount)</h4>
+
+                <div class="tlob-table-wrap">
+                    <table class="tlob-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th class="text-center">Unit price</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-end">Line total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <img src="@(string.IsNullOrEmpty(item.ProductImageUrl) ? "/images/placeholder.jpg" : item.ProductImageUrl)"
+                                                 alt="@item.ProductName" class="tlob-thumb" />
+                                            <div>
+                                                <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId"
+                                                   class="fw-semibold small" style="color: var(--ink); text-decoration: none;">
+                                                    @item.ProductName
+                                                </a>
+                                                <div class="text-muted" style="font-size: .75rem;">Sold by @item.SellerName</div>
+
+                                                @if (item.IsOutOfStock)
+                                                {
+                                                    <span class="tlob-pill tlob-pill--brick mt-1">Out of stock</span>
+                                                }
+                                                else if (item.HasInsufficientStock)
+                                                {
+                                                    <span class="tlob-pill tlob-pill--brick mt-1">Only @item.AvailableStock left</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center small fw-semibold">@item.UnitPrice.ToString("C")</td>
+                                    <td class="text-center">
+                                        <div class="tlob-qty">
+                                            <form asp-controller="Cart" asp-action="DecreaseQty" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="cartItemId" value="@item.Id" />
+                                                <button type="submit" @(item.Quantity <= 1 ? "disabled" : "")>&minus;</button>
+                                            </form>
+                                            <span>@item.Quantity</span>
+                                            <form asp-controller="Cart" asp-action="IncreaseQty" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="cartItemId" value="@item.Id" />
+                                                <button type="submit" @(item.Quantity >= item.AvailableStock ? "disabled" : "")>&plus;</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                    <td class="text-end small fw-bold" style="color: var(--gold-600);">@item.LineTotal.ToString("C")</td>
+                                    <td class="text-end">
+                                        <form asp-controller="Cart" asp-action="RemoveFromCart" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="cartItemId" value="@item.Id" />
+                                            <button type="submit" class="tlob-icon-btn tlob-icon-btn--danger" title="Remove">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <div class="tlob-card tlob-panel">
+                    <h4 class="mb-3">Order summary</h4>
+
+                    <div class="tlob-summary-row">
+                        <span>Subtotal</span>
+                        <strong>@Model.SubTotal.ToString("C")</strong>
+                    </div>
+                    <div class="tlob-summary-row">
+                        <span>Shipping</span>
+                        <strong style="color: var(--green-700);">FREE</strong>
+                    </div>
+                    <div class="tlob-summary-total">
+                        <span class="fw-bold">Total</span>
+                        <span class="amount">@Model.Total.ToString("C")</span>
+                    </div>
+
+                    @if (Model.HasInvalidItems)
+                    {
+                        <div class="tlob-callout tlob-callout--brick mt-3">
+                            <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                            <span>Some items are out of stock or exceed what's available. Fix your cart before checking out.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-controller="Cart" asp-action="Checkout" class="tlob-btn mt-3">
+                            <i class="bi bi-bag-check me-1"></i>Proceed to checkout
+                        </a>
+                    }
+
+                    <a asp-controller="Products" asp-action="Index" class="tlob-btn tlob-btn--ghost mt-2">
+                        Continue shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

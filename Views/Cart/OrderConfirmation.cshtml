@@ -1,0 +1,77 @@
+﻿@using _2tlob.ViewModels.Checkout
+@model OrderConfirmationViewModel
+@{
+    ViewData["Title"] = "Order Confirmed";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-card tlob-panel text-center mb-4" style="padding: 2.6rem 2rem;">
+        <i class="bi bi-check-circle-fill" style="font-size: 3rem; color: var(--green-700);"></i>
+        <h1 class="mt-3 mb-1">Order placed!</h1>
+        <p class="text-muted mb-0">Thanks for your order — a confirmation has been recorded on your account.</p>
+    </div>
+
+    <div class="tlob-grid-detail">
+        <div class="tlob-card tlob-panel">
+            <div class="tlob-section">
+                <h3><i class="bi bi-box text-primary me-2"></i>Order #@Model.OrderId</h3>
+                <span class="tlob-pill tlob-pill--gold">@Model.Status</span>
+            </div>
+            <p class="text-muted small mb-3">Placed @Model.OrderDate.ToString("MMMM dd, yyyy HH:mm")</p>
+
+            <div class="tlob-table-wrap">
+                <table class="tlob-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td class="small">@item.Product?.Name</td>
+                                <td class="text-center small">@item.Quantity</td>
+                                <td class="text-end small fw-bold" style="color: var(--gold-600);">@((item.UnitPrice * item.Quantity).ToString("C"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div>
+            <div class="tlob-card tlob-panel mb-4">
+                <h4 class="mb-3">Delivery details</h4>
+                <div class="mb-2">
+                    <span class="text-muted small d-block">Address</span>
+                    <span class="fw-semibold">@Model.ShippingAddress, @Model.City, @Model.PostalCode</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Phone</span>
+                    <span class="fw-semibold">@Model.PhoneNumber</span>
+                </div>
+            </div>
+
+            <div class="tlob-card tlob-panel mb-4">
+                <div class="tlob-summary-total" style="margin-top: 0; border-top: none; padding-top: 0;">
+                    <span class="fw-bold">Order total</span>
+                    <span class="amount">@Model.TotalAmount.ToString("C")</span>
+                </div>
+            </div>
+
+            <a asp-controller="Orders" asp-action="MyOrders" class="tlob-btn">
+                <i class="bi bi-receipt me-1"></i>View my orders
+            </a>
+            <a asp-controller="Products" asp-action="Index" class="tlob-btn tlob-btn--ghost mt-2">
+                Continue shopping
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,32 @@
+﻿@model IEnumerable<_2tlob.ViewModels.Admin.CategoryViewModel>
+@{
+    ViewData["Title"] = "Categories";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-page-head">
+        <p class="tlob-eyebrow">Marketplace</p>
+        <h1>Shop by category</h1>
+        <p>Browse the full catalog, organized by category.</p>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var category in Model)
+        {
+            <div class="col-md-4">
+                <div class="tlob-card tlob-panel h-100 d-flex flex-column">
+                    <h5 class="mb-1">@category.Name</h5>
+                    <p class="text-muted small flex-grow-1">@category.Description</p>
+                    <span class="tlob-pill tlob-pill--gold mb-3 align-self-start">@category.ProductCount products</span>
+                    <a asp-controller="Categories" asp-action="Details" asp-route-id="@category.Id" class="tlob-btn tlob-btn-sm w-100">
+                        Browse
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
