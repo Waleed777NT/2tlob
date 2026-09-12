@@ -1,0 +1,60 @@
+﻿@model _2tlob.ViewModels.Review.AddReviewViewModel
+
+@{
+    ViewData["Title"] = "Add Review";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Write a Review</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <img src="@Model.ProductImageUrl" alt="@Model.ProductName" style="width: 60px; height: 60px; object-fit: cover;" class="rounded me-3 border" />
+                        <div>
+                            <h5 class="mb-0">@Model.ProductName</h5>
+                        </div>
+                    </div>
+
+                    <form asp-action="AddReview" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ProductId" />
+                        <input type="hidden" asp-for="ProductName" />
+                        <input type="hidden" asp-for="ProductImageUrl" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Rating" class="form-label"></label>
+                            <select asp-for="Rating" class="form-select">
+                                <option value="5">⭐⭐⭐⭐⭐ (5 - Excellent)</option>
+                                <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
+                                <option value="3">⭐⭐⭐ (3 - Good)</option>
+                                <option value="2">⭐⭐ (2 - Fair)</option>
+                                <option value="1">⭐ (1 - Poor)</option>
+                            </select>
+                            <span asp-validation-for="Rating" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Comment" class="form-label"></label>
+                            <textarea asp-for="Comment" rows="4" class="form-control" placeholder="What did you like or dislike about this product?"></textarea>
+                            <span asp-validation-for="Comment" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-controller="Products" asp-action="Details" asp-route-id="@Model.ProductId" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
