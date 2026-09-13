@@ -1,0 +1,203 @@
+﻿<div id="chatbot-launcher" class="position-fixed bottom-0 end-0 m-4 z-3">
+    <button id="chatbot-toggle-btn" class="btn rounded-circle shadow d-flex align-items-center justify-content-center p-0" style="width: 58px; height: 58px; background-color: #1e3d34; border: 2px solid #E2B04B; transition: transform 0.2s ease;">
+        <i class="bi bi-chat-dots-fill text-white fs-4"></i>
+    </button>
+</div>
+
+<div id="chatbot-window" class="position-fixed bottom-0 end-0 m-4 z-3 d-none shadow-lg rounded-4 overflow-hidden border" style="width: 370px; max-width: 90vw; height: 520px; background-color: #ffffff; flex-direction: column; border-color: #e0e0e0 !important;">
+
+    <div class="p-3 d-flex align-items-center justify-content-between text-white" style="background-color: #1e3d34;">
+        <div class="d-flex align-items-center gap-2">
+            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background-color: rgba(226, 176, 75, 0.2);">
+                <i class="bi bi-robot fs-6" style="color: #E2B04B;"></i>
+            </div>
+            <div>
+                <h6 class="mb-0 text-white fw-bold small">2tlob Assistant</h6>
+                <span class="badge bg-success border-0 p-0" style="font-size: 0.65rem; padding: 2px 6px !important;">Online</span>
+            </div>
+        </div>
+        <button id="chatbot-close-btn" class="btn btn-sm btn-link text-white-50 p-0 text-decoration-none">
+            <i class="bi bi-x-lg fs-6"></i>
+        </button>
+    </div>
+
+    <div id="chat-messages" class="p-3 flex-grow-1 overflow-y-auto d-flex flex-column gap-3" style="background-color: #fafafa;">
+
+        <div class="d-flex align-items-start gap-2">
+            <div class="chat-bubble bot-bubble" dir="auto">
+                Welcome to 2tlob! 👋 How can I help you today with products or tracking your orders?
+            </div>
+        </div>
+    </div>
+
+    <div class="p-2.5 bg-white border-top border-light-subtle">
+        <form id="chatbot-form" class="d-flex gap-2 m-0 p-1">
+            <input type="text" id="chatbot-input" class="form-control border-light-subtle shadow-none px-3 py-2 text-dark" placeholder="Type your message..." style="background-color: #f8f9fa; font-size: 0.875rem; border-radius: 8px;" autocomplete="off" dir="auto" />
+            <button type="submit" id="chatbot-send-btn" class="btn px-3 d-flex align-items-center justify-content-center" style="background-color: #1e3d34; color: #ffffff; border: none; font-weight: 600; border-radius: 8px;">
+                <i class="bi bi-send-fill" style="color: #E2B04B;"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .chat-bubble {
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        max-width: 85%;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+    }
+
+    .bot-bubble {
+        background-color: #e9ecef;
+        color: #212529;
+        border-top-left-radius: 2px;
+        text-align: start;
+    }
+
+    .user-bubble {
+        background-color: #E2B04B;
+        color: #121212;
+        font-weight: 600;
+        border-top-right-radius: 2px;
+        text-align: start;
+    }
+
+    #chat-messages::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    #chat-messages::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+    }
+
+    #chatbot-toggle-btn:hover {
+        transform: scale(1.05);
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const toggleBtn = document.getElementById("chatbot-toggle-btn");
+        const closeBtn = document.getElementById("chatbot-close-btn");
+        const chatWindow = document.getElementById("chatbot-window");
+        const chatForm = document.getElementById("chatbot-form");
+        const chatInput = document.getElementById("chatbot-input");
+        const messagesContainer = document.getElementById("chat-messages");
+
+        toggleBtn.addEventListener("click", () => {
+            chatWindow.classList.remove("d-none");
+            chatWindow.style.display = "flex";
+            toggleBtn.parentElement.classList.add("d-none");
+            chatInput.focus();
+        });
+
+        closeBtn.addEventListener("click", () => {
+            chatWindow.classList.add("d-none");
+            chatWindow.style.display = "none";
+            toggleBtn.parentElement.classList.remove("d-none");
+        });
+
+        chatForm.addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            if (!navigator.onLine) {
+                appendMessage(message, "user");
+                chatInput.value = "";
+                appendMessage("Network error. Please check your internet connection.", "bot");
+                return;
+            }
+
+            appendMessage(message, "user");
+            chatInput.value = "";
+
+            const loadingId = appendLoading();
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+            try {
+                const response = await fetch("/Chatbot/SendMessage", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: message }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`Server status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                removeMessage(loadingId);
+                appendMessage(data.reply, "bot");
+
+            } catch (error) {
+                clearTimeout(timeoutId);
+                removeMessage(loadingId);
+
+                if (error.name === 'AbortError') {
+                    appendMessage("Request timed out. Please check your connection and try again.", "bot");
+                } else if (!navigator.onLine) {
+                    appendMessage("Connection lost. Please check your internet connection.", "bot");
+                } else {
+                    appendMessage("Sorry, something went wrong. Please try again.", "bot");
+                }
+            }
+        });
+
+        function formatMarkdown(text) {
+            if (!text) return '';
+            let safeText = escapeHtml(text);
+            return safeText.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        }
+
+        function appendMessage(text, sender) {
+            const msgDiv = document.createElement("div");
+            const isUser = sender === 'user';
+
+            msgDiv.className = `d-flex align-items-start gap-2 ${isUser ? 'justify-content-end' : 'justify-content-start'}`;
+
+            msgDiv.innerHTML = `
+                    <div class="chat-bubble ${isUser ? 'user-bubble' : 'bot-bubble'}" dir="auto">
+                        ${formatMarkdown(text)}
+                    </div>
+                `;
+            messagesContainer.appendChild(msgDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function appendLoading() {
+            const id = "loading-" + Date.now();
+            const loadingDiv = document.createElement("div");
+            loadingDiv.id = id;
+            loadingDiv.className = "d-flex align-items-start gap-2 justify-content-start";
+            loadingDiv.innerHTML = `
+                    <div class="chat-bubble bot-bubble d-flex align-items-center gap-2">
+                        <span class="spinner-border spinner-border-sm text-dark" role="status"></span>
+                        <span>Thinking...</span>
+                    </div>
+                `;
+            messagesContainer.appendChild(loadingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return id;
+        }
+
+        function removeMessage(id) {
+            const elem = document.getElementById(id);
+            if (elem) elem.remove();
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    });
+</script>
