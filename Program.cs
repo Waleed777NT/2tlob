@@ -87,6 +87,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 
 // 6. Register MVC Controllers and Views
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
