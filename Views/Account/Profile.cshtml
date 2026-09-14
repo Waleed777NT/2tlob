@@ -41,6 +41,14 @@
             @if (Model.Role == "Customer")
             {
                 <div class="tlob-card tlob-note">
+                    <h5>My Orders</h5>
+                    <p>Track your purchases and view order history.</p>
+                    <a asp-controller="Orders" asp-action="MyOrders" class="tlob-btn tlob-btn--ghost">
+                        <i class="bi bi-receipt me-1"></i>View my orders
+                    </a>
+                </div>
+
+                <div class="tlob-card tlob-note">
                     <h5>Become a seller</h5>
                     @if (Model.PendingSellerRequest != null)
                     {
