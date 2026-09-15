@@ -5,7 +5,7 @@ namespace _2tlob.Services.Interfaces
 {
     public interface IProductService
     {
-        Task<ProductListViewModel> GetFilteredProductsAsync(string? search, int? categoryId, string? sortBy, int page = 1, int pageSize = 12);
+        Task<ProductListViewModel> GetFilteredProductsAsync(string? search, int? categoryId, string? sortBy, int page = 1, int pageSize = 12, string? currentUserId = null);
         Task<ProductDetailsViewModel?> GetProductDetailsAsync(int id, string? currentUserId);
         Task<IEnumerable<Product>> GetProductsBySellerAsync(string sellerId);
         Task<Product?> GetProductForEditAsync(int id, string sellerId);

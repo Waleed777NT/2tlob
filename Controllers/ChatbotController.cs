@@ -40,18 +40,44 @@ namespace _2tlob.Controllers
 
             try
             {
-                string systemPrompt = "You are an AI customer support assistant for '2tlob' e-commerce store in Egypt. Be concise, friendly, and answer in the same language as the user. User message: ";
+                //string systemPrompt = "You are an AI customer support assistant for '2tlob' e-commerce store in Egypt. Be concise, friendly, and answer in the same language as the user. User message: ";
 
                 var requestBody = new
                 {
+                    systemInstruction = new
+                    {
+                        parts = new[]
+                        {
+                            new
+                            {
+                                text = """
+                                       You are the customer support assistant for 2tlob, an e-commerce store in Egypt.
+
+                                       Rules:
+                                       - Answer in the same language as the user.
+                                       - Be concise, friendly, and helpful.
+                                       - Do not invent information about products, orders, prices, delivery, or policies.
+                                       - If you don't know something, clearly say that you don't know.
+                                       - You can explain how users can use the website.
+                                       """
+                            }
+                        }
+                    },
                     contents = new[]
                     {
-                        new { parts = new[] { new { text = systemPrompt + request.Message } } }
+                        new
+                        {
+                            role = "user",
+                            parts = new[]
+                            {
+                                new { text = request.Message }
+                            }
+                        }
                     }
                 };
 
                 var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-                string modelName = "gemini-3.6-flash";
+                string modelName = "gemini-3.5-flash-lite";
 
                 var response = await _httpClient.PostAsync(
                     $"https://generativelanguage.googleapis.com/v1beta/models/{modelName}:generateContent?key={apiKey}",
@@ -59,6 +85,18 @@ namespace _2tlob.Controllers
                 );
 
                 var responseString = await response.Content.ReadAsStringAsync();
+
+                // for console check
+                Console.WriteLine("STATUS: " + response.StatusCode);
+                Console.WriteLine("RESPONSE: " + responseString);
+
+                if ((int)response.StatusCode == 503)
+                {
+                    return Json(new
+                    {
+                        reply = "I'm currently unable to connect to the AI assistant. Please try again in a moment."
+                    });
+                }
 
                 if (response.IsSuccessStatusCode)
                 {
