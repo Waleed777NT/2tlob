@@ -57,7 +57,11 @@
         <div class="row g-4">
             @foreach (var product in Model.Products)
             {
-                @await Html.PartialAsync("_ProductCard", product)
+                var partialViewData = new ViewDataDictionary(ViewData)
+                {
+                    { "IsWishlisted", Model.WishlistProductIds.Contains(product.Id) }
+                };
+                @await Html.PartialAsync("_ProductCard", product, partialViewData)
             }
         </div>
 

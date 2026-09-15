@@ -46,7 +46,11 @@
         <div class="row g-4">
             @foreach (var product in Model.Products)
             {
-                @await Html.PartialAsync("../Products/_ProductCard", product)
+                var partialViewData = new ViewDataDictionary(ViewData)
+                {
+                    { "IsWishlisted", Model.WishlistProductIds.Contains(product.Id) }
+                };
+                @await Html.PartialAsync("_ProductCard", product, partialViewData)
             }
         </div>
 
@@ -72,3 +76,7 @@
 
     <a asp-controller="Categories" asp-action="Index" class="tlob-btn tlob-btn--muted tlob-btn-sm mt-4">← Back to all categories</a>
 </div>
+
+@section Scripts {
+    <script src="~/js/product-actions.js" asp-append-version="true"></script>
+}
