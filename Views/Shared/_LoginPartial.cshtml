@@ -57,6 +57,14 @@
                 </a>
             </li>
         }
+        else if (User.IsInRole("Customer"))
+        {
+            <li class="nav-item">
+                <a class="nav-link" asp-controller="Orders" asp-action="MyOrders">
+                    <i class="bi bi-receipt me-1"></i>My Orders
+                </a>
+            </li>
+        }
         <li class="nav-item">
             <a class="nav-link" asp-controller="Account" asp-action="Profile">
                 <i class="bi bi-person-circle me-1"></i>My Profile
