@@ -18,7 +18,7 @@ namespace _2tlob.Services.Implementations
             _fileUploadService = fileUploadService;
         }
 
-        public async Task<ProductListViewModel> GetFilteredProductsAsync(string? search, int? categoryId, string? sortBy, int page = 1, int pageSize = 12)
+        public async Task<ProductListViewModel> GetFilteredProductsAsync(string? search, int? categoryId, string? sortBy, int page = 1, int pageSize = 12, string? currentUserId = null)
         {
             var query = _context.Products
                 .Include(p => p.Category)
@@ -30,7 +30,7 @@ namespace _2tlob.Services.Implementations
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var term = search.Trim().ToLower();
-                query = query.Where(p => (p.Name != null && p.Name.ToLower().Contains(term)) || 
+                query = query.Where(p => (p.Name != null && p.Name.ToLower().Contains(term)) ||
                                          (p.Description != null && p.Description.ToLower().Contains(term)));
             }
 
@@ -39,13 +39,12 @@ namespace _2tlob.Services.Implementations
                 query = query.Where(p => p.CategoryId == categoryId.Value);
             }
 
-            // Sorting
             query = sortBy switch
             {
                 "price_asc" => query.OrderBy(p => p.Price),
                 "price_desc" => query.OrderByDescending(p => p.Price),
                 "name_asc" => query.OrderBy(p => p.Name),
-                _ => query.OrderByDescending(p => p.CreatedAt) // newest first by default
+                _ => query.OrderByDescending(p => p.CreatedAt)
             };
 
             int totalItems = await query.CountAsync();
@@ -60,6 +59,18 @@ namespace _2tlob.Services.Implementations
                 .AsNoTracking()
                 .ToListAsync();
 
+            var wishlistedIds = new HashSet<int>();
+            if (!string.IsNullOrEmpty(currentUserId) && products.Any())
+            {
+                var productIds = products.Select(p => p.Id).ToList();
+                wishlistedIds = (await _context.WishlistItems
+                    .Include(wi => wi.Wishlist)
+                    .Where(wi => wi.Wishlist.CustomerId == currentUserId && productIds.Contains(wi.ProductId))
+                    .Select(wi => wi.ProductId)
+                    .ToListAsync())
+                    .ToHashSet();
+            }
+
             return new ProductListViewModel
             {
                 Products = products,
@@ -69,7 +80,8 @@ namespace _2tlob.Services.Implementations
                 SortBy = sortBy,
                 CurrentPage = page,
                 PageSize = pageSize,
-                TotalItems = totalItems
+                TotalItems = totalItems,
+                WishlistProductIds = wishlistedIds
             };
         }
 

@@ -10,8 +10,8 @@
             try {
                 const res = await fetch('/Cart/AddToCart', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
-                    body: `productId=${productId}&quantity=1`
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `productId=${productId}&quantity=1&__RequestVerificationToken=${encodeURIComponent(token)}`
                 });
 
                 if (res.status === 401) {
@@ -21,13 +21,14 @@
                 if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
 
                 const data = await res.json();
+
                 btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Added!';
                 setTimeout(() => { btn.innerHTML = originalHtml; btn.disabled = false; }, 1500);
 
                 const cartBadge = document.querySelector('.js-cart-count');
                 if (cartBadge && typeof data.cartCount === 'number') {
                     cartBadge.textContent = data.cartCount;
-                    cartBadge.classList.remove('d-none');
+                    cartBadge.classList.toggle('d-none', data.cartCount === 0);
                 }
             } catch (err) {
                 console.error(err);
@@ -48,8 +49,8 @@
             try {
                 const res = await fetch('/Wishlist/Toggle', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
-                    body: `productId=${productId}`
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `productId=${productId}&__RequestVerificationToken=${encodeURIComponent(token)}`
                 });
 
                 if (res.status === 401) {
@@ -65,6 +66,16 @@
                 if (label) label.textContent = data.inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist';
                 btn.classList.toggle('btn-outline-danger', data.inWishlist);
                 btn.classList.toggle('btn-outline-secondary', !data.inWishlist);
+                btn.classList.toggle('text-danger', data.inWishlist);
+
+                const wishlistBadge = document.querySelector('.js-wishlist-count');
+                if (wishlistBadge) {
+                    let count = parseInt(wishlistBadge.textContent, 10) || 0;
+                    count += data.inWishlist ? 1 : -1;
+                    count = Math.max(count, 0);
+                    wishlistBadge.textContent = count;
+                    wishlistBadge.classList.toggle('d-none', count === 0);
+                }
             } catch (err) {
                 console.error(err);
                 alert('Could not update your wishlist. Please try again.');

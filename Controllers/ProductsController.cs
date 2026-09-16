@@ -18,7 +18,8 @@ namespace _2tlob.Controllers
 
         public async Task<IActionResult> Index(string? search, int? categoryId, string? sortBy, int page = 1)
         {
-            var model = await _productService.GetFilteredProductsAsync(search, categoryId, sortBy, page);
+            var currentUserId = _userManager.GetUserId(User);
+            var model = await _productService.GetFilteredProductsAsync(search, categoryId, sortBy, page, currentUserId: currentUserId);
             return View(model);
         }
 

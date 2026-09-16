@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using _2tlob.Models;
 using _2tlob.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace _2tlob.Controllers
 {
@@ -7,11 +9,13 @@ namespace _2tlob.Controllers
     {
         private readonly ICategoryService _categoryService;
         private readonly IProductService _productService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CategoriesController(ICategoryService categoryService, IProductService productService)
+        public CategoriesController(ICategoryService categoryService, IProductService productService, UserManager<ApplicationUser> userManager)
         {
             _categoryService = categoryService;
             _productService = productService;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -23,15 +27,12 @@ namespace _2tlob.Controllers
         public async Task<IActionResult> Details(int id, string? search, string? sortBy, int page = 1)
         {
             var category = await _categoryService.GetByIdAsync(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
+            if (category == null) return NotFound();
 
-            var products = await _productService.GetFilteredProductsAsync(search, id, sortBy, page);
+            var currentUserId = _userManager.GetUserId(User);
+            var products = await _productService.GetFilteredProductsAsync(search, id, sortBy, page, currentUserId: currentUserId);
             ViewBag.CategoryName = category.Name;
             ViewBag.CategoryId = id;
-
             return View(products);
         }
     }
