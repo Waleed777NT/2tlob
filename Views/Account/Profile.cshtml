@@ -63,6 +63,17 @@
                     }
                 </div>
             }
+
+            @if (Model.Role == "Seller")
+            {
+                <div class="tlob-card tlob-note">
+                    <h5>Your store</h5>
+                    <p>You're an approved seller. Manage your listings, orders, and store stats from the Seller Panel.</p>
+                    <a asp-controller="Seller" asp-action="Dashboard" class="tlob-btn tlob-btn--ghost">
+                        <i class="bi bi-shop me-1"></i>Go to Seller Panel
+                    </a>
+                </div>
+            }
         </div>
 
         <div class="tlob-card tlob-panel">

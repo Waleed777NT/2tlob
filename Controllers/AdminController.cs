@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using _2tlob.Data;
+using _2tlob.Helpers;
 using _2tlob.Models;
 using _2tlob.Services.Interfaces;
 using _2tlob.Enum;
@@ -37,7 +38,12 @@ namespace _2tlob.Controllers
             var customerRoleUsers = await _userManager.GetUsersInRoleAsync("Customer");
             var sellerRoleUsers = await _userManager.GetUsersInRoleAsync("Seller");
 
-            int totalCustomers = customerRoleUsers.Count;
+            // Sellers keep the "Customer" role too (by design, so they can still
+            // shop/order), so a straight Count of the Customer role list would
+            // double-count every seller as a customer as well. Exclude anyone
+            // who is also a Seller so the two stat cards don't overlap.
+            var sellerIds = sellerRoleUsers.Select(u => u.Id).ToHashSet();
+            int totalCustomers = customerRoleUsers.Count(u => !sellerIds.Contains(u.Id));
             int totalSellers = sellerRoleUsers.Count;
             int totalProducts = await _context.Products.CountAsync();
             int totalOrders = await _context.Orders.CountAsync();
@@ -104,7 +110,7 @@ namespace _2tlob.Controllers
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                var userRole = roles.FirstOrDefault() ?? "Customer";
+                var userRole = RoleHelper.GetDisplayRole(roles);
 
                 if (!string.IsNullOrEmpty(role) && !roles.Contains(role))
                 {

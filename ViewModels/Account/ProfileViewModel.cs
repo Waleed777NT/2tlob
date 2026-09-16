@@ -20,7 +20,7 @@ namespace _2tlob.ViewModels.Account
         [Display(Name = "Phone Number")]
         public string? PhoneNumber { get; set; }
 
-        public string Role { get; set; } = "Customer";
+        public string Role { get; set; } = "Customer"; 
         public UserStatus Status { get; set; } = UserStatus.Active;
         public DateTime CreatedAt { get; set; }
 

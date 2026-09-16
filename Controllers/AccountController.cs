@@ -1,5 +1,6 @@
 ﻿using _2tlob.Data;
 using _2tlob.Enum;
+using _2tlob.Helpers;
 using _2tlob.Models;
 using _2tlob.Services.Interfaces;
 using _2tlob.ViewModels.Account;
@@ -35,7 +36,7 @@ namespace _2tlob.Controllers
         [HttpGet]
         public IActionResult Register(string? returnUrl = null)
         {
-            if(User.Identity?.IsAuthenticated == true) return RedirectToAction("Index", "Home");
+            if (User.Identity?.IsAuthenticated == true) return RedirectToAction("Index", "Home");
 
             ViewData["ReturnUrl"] = returnUrl;
             return View(new RegisterViewModel());
@@ -47,7 +48,7 @@ namespace _2tlob.Controllers
         {
             ViewData["ReturnUrl"] = returnUrl;
 
-            if(!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid) return View(model);
 
             var userExists = await _userManager.FindByEmailAsync(model.Email);
             if (userExists != null)
@@ -66,7 +67,7 @@ namespace _2tlob.Controllers
             };
 
             var result = await _userManager.CreateAsync(newUser, model.Password);
-            if(result.Succeeded)
+            if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(newUser, "Customer");
                 await _signInManager.SignInAsync(newUser, isPersistent: false);
@@ -78,9 +79,9 @@ namespace _2tlob.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            foreach(var error in result.Errors)
+            foreach (var error in result.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
-            
+
             return View(model);
         }
 
@@ -90,7 +91,7 @@ namespace _2tlob.Controllers
             if (User.Identity?.IsAuthenticated == true) return RedirectToAction("Index", "Home");
 
             ViewData["ReturnUrl"] = returnUrl;
-            return View(new LoginViewModel { ReturnUrl = returnUrl});
+            return View(new LoginViewModel { ReturnUrl = returnUrl });
         }
 
         [HttpPost]
@@ -163,7 +164,7 @@ namespace _2tlob.Controllers
             }
 
             var roles = await _userManager.GetRolesAsync(user);
-            var primaryRole = roles.FirstOrDefault() ?? "Customer";
+            var primaryRole = RoleHelper.GetDisplayRole(roles);
 
             var pendingRequest = await _sellerService.GetUserPendingRequestAsync(user.Id);
             var customerOrders = await _orderService.GetCustomerOrdersAsync(user.Id);
@@ -200,7 +201,7 @@ namespace _2tlob.Controllers
             if (!ModelState.IsValid)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                model.Role = roles.FirstOrDefault() ?? "Customer";
+                model.Role = RoleHelper.GetDisplayRole(roles);
                 model.Email = user.Email ?? string.Empty;
                 model.Status = user.Status;
                 model.CreatedAt = user.CreatedAt;
