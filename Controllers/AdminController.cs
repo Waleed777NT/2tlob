@@ -34,14 +34,11 @@ namespace _2tlob.Controllers
         [Route("/Admin/Dashboard")]
         public async Task<IActionResult> Dashboard()
         {
-            // Efficient database queries using CountAsync and SumAsync
+           
             var customerRoleUsers = await _userManager.GetUsersInRoleAsync("Customer");
             var sellerRoleUsers = await _userManager.GetUsersInRoleAsync("Seller");
 
-            // Sellers keep the "Customer" role too (by design, so they can still
-            // shop/order), so a straight Count of the Customer role list would
-            // double-count every seller as a customer as well. Exclude anyone
-            // who is also a Seller so the two stat cards don't overlap.
+            
             var sellerIds = sellerRoleUsers.Select(u => u.Id).ToHashSet();
             int totalCustomers = customerRoleUsers.Count(u => !sellerIds.Contains(u.Id));
             int totalSellers = sellerRoleUsers.Count;

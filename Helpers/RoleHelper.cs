@@ -4,12 +4,12 @@
     {
         private static readonly string[] PriorityOrder = { "Admin", "Seller", "Customer" };
 
-        /// <summary>
-        /// Returns the highest-priority role a user holds, for display purposes only.
-        /// Does NOT affect authorization - [Authorize(Roles=...)] and
-        /// User.IsInRole(...) checks are unaffected by this and keep working
-        /// off the full role set as before.
-        /// </summary>
+        //
+        // Returns the highest-priority role a user holds, for display purposes only.
+        // Does NOT affect authorization - [Authorize(Roles=...)] and
+        // User.IsInRole(...) checks are unaffected by this and keep working
+        //off the full role set as before.
+        //
         public static string GetDisplayRole(IEnumerable<string> roles)
         {
             var roleSet = roles as ICollection<string> ?? roles.ToList();
