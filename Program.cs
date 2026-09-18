@@ -105,6 +105,10 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while initializing and seeding the database.");
+        if (app.Environment.IsDevelopment())
+        {
+            throw; // fail fast locally instead of silently starting with an empty DB
+        }
     }
 }
 
