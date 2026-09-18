@@ -8,6 +8,10 @@ namespace _2tlob.ViewModels.Review
         public string ProductName { get; set; } = string.Empty;
         public string ProductImageUrl { get; set; } = string.Empty;
 
+        // True when the customer already has a review for this product and is
+        // editing it, instead of writing a brand new one.
+        public bool IsEditing { get; set; }
+
         [Required(ErrorMessage = "Please select a star rating.")]
         [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5 stars.")]
         public int Rating { get; set; } = 5;
@@ -18,3 +22,4 @@ namespace _2tlob.ViewModels.Review
         public string Comment { get; set; } = string.Empty;
     }
 }
+

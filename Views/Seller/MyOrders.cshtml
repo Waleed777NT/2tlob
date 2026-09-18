@@ -1,91 +1,83 @@
-﻿@model _2tlob.ViewModels.Order.SellerOrderListViewModel
-@using _2tlob.Enum
-
+﻿@using _2tlob.Enum
+@model _2tlob.ViewModels.Order.SellerOrderListViewModel
 @{
-    ViewData["Title"] = "Seller Orders";
+    ViewData["Title"] = "My Orders";
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-        }
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-        }
-        <h2>Customer Orders for Your Products</h2>
-        <h5 class="text-muted">Total Sales: $@Model.TotalSellerSales.ToString("N2")</h5>
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-page-head">
+        <p class="tlob-eyebrow">Seller</p>
+        <h1>Customer orders</h1>
+        <p>Orders that include at least one of your products. Total sales: <strong>@Model.TotalSellerSales.ToString("C")</strong></p>
     </div>
 
-    @if (!Model.Items.Any())
+    @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-info">No orders found for your products yet.</div>
+        <div class="tlob-callout tlob-callout--gold mb-3"><i class="bi bi-check-circle mt-1"></i><span>@TempData["SuccessMessage"]</span></div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="tlob-callout tlob-callout--brick mb-3"><i class="bi bi-exclamation-triangle-fill mt-1"></i><span>@TempData["ErrorMessage"]</span></div>
+    }
+
+    @if (!Model.Orders.Any())
+    {
+        <div class="tlob-card tlob-empty">
+            <i class="bi bi-receipt" style="font-size: 2.5rem; color: var(--line);"></i>
+            <h4>No orders yet</h4>
+            <p class="mb-0">Once a customer orders one of your products, it'll show up here.</p>
+        </div>
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Order #</th>
-                        <th>Date</th>
-                        <th>Product</th>
-                        <th>Customer</th>
-                        <th>Qty</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model.Items)
-                    {
+        <div class="tlob-card tlob-panel">
+            <div class="tlob-table-wrap">
+                <table class="tlob-table">
+                    <thead>
                         <tr>
-                            <td>#@item.OrderId</td>
-                            <td>@item.OrderDate.ToString("yyyy-MM-dd")</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <img src="@(string.IsNullOrEmpty(item.ProductImageUrl) ? "/images/products/default.jpg" : item.ProductImageUrl)" style="width: 40px; height: 40px; object-fit: cover;" class="rounded me-2" />
-                                    <span>@item.ProductName</span>
-                                </div>
-                            </td>
-                            <td>
-                                <div>@item.CustomerName</div>
-                                <small class="text-muted">@item.PhoneNumber</small>
-                            </td>
-                            <td>@item.Quantity</td>
-                            <td>$@item.LineTotal.ToString("N2")</td>
-                            <td>
-                                <span class="badge @(item.OrderStatus == OrderStatus.Delivered ? "bg-success" : item.OrderStatus == OrderStatus.Cancelled ? "bg-danger" : "bg-warning text-dark")">
-                                    @item.OrderStatus
-                                </span>
-                            </td>
-                            <td>
-                                @if (item.OrderStatus != OrderStatus.Delivered && item.OrderStatus != OrderStatus.Cancelled)
-                                {
-                                    <form asp-action="UpdateOrderStatus" method="post" class="d-flex gap-1">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="orderId" value="@item.OrderId" />
-                                        <select name="status" class="form-select form-select-sm" style="width: 130px;">
-                                            @foreach (OrderStatus status in System.Enum.GetValues(typeof(OrderStatus)))
-                                            {
-                                                <option value="@status" selected="@(status == item.OrderStatus)">@status</option>
-                                            }
-                                        </select>
-                                        <button type="submit" class="btn btn-sm btn-primary">Update</button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">Completed</span>
-                                }
-                            </td>
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Total (your share)</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders)
+                        {
+                            var pillClass = order.OrderStatus switch
+                            {
+                                OrderStatus.Pending => "tlob-pill--gold",
+                                OrderStatus.Confirmed => "tlob-pill--green",
+                                OrderStatus.Shipped => "tlob-pill--green",
+                                OrderStatus.Delivered => "tlob-pill--green",
+                                OrderStatus.Cancelled => "tlob-pill--brick",
+                                _ => "tlob-pill--muted"
+                            };
+
+                            <tr>
+                                <td class="fw-bold" style="color: var(--green-700);">#@order.OrderId</td>
+                                <td class="small text-muted">@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                <td class="small">@order.CustomerName</td>
+                                <td class="small">@order.ItemCount item(s)</td>
+                                <td class="fw-bold">@order.TotalAmount.ToString("C")</td>
+                                <td><span class="tlob-pill @pillClass">@order.OrderStatus</span></td>
+                                <td class="text-end">
+                                    <a asp-controller="Seller" asp-action="OrderDetails" asp-route-id="@order.OrderId" class="tlob-btn tlob-btn--ghost tlob-btn-sm">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     }
 </div>

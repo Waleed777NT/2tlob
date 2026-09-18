@@ -23,8 +23,8 @@ namespace _2tlob.Controllers
         public async Task<IActionResult> Index()
         {
             var customerId = _userManager.GetUserId(User)!;
-            var vm = await _wishlistService.GetWishlistByCustomerIdAsync(customerId);
-            return View(vm);
+            var products = await _wishlistService.GetWishlistProductsAsync(customerId);
+            return View(products);
         }
 
         // POST: /Wishlist/Toggle

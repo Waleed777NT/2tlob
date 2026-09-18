@@ -121,14 +121,16 @@ namespace _2tlob.Services.Implementations
                 isOwner = product.SellerId == currentUserId;
                 hasReviewed = reviews.Any(r => r.CustomerId == currentUserId);
 
-                // User can review only if they purchased this product in a completed/confirmed/delivered order and haven't reviewed yet
-                if (!hasReviewed && !isOwner)
+                // Can write (or edit) a review once they've purchased AND actually received
+                // (Delivered) this product — matches ReviewsController's own check, and stays
+                // true even after they've already reviewed once, so they can update it later.
+                if (!isOwner)
                 {
                     canReview = await _context.OrderItems
                         .Include(oi => oi.Order)
-                        .AnyAsync(oi => oi.ProductId == id && 
-                                       oi.Order.CustomerId == currentUserId && 
-                                       oi.Order.Status != OrderStatus.Cancelled);
+                        .AnyAsync(oi => oi.ProductId == id &&
+                                       oi.Order.CustomerId == currentUserId &&
+                                       oi.Order.Status == OrderStatus.Delivered);
                 }
 
                 inWishlist = await _context.WishlistItems

@@ -175,6 +175,17 @@ namespace _2tlob.Services.Implementations
                 .AsNoTracking()
                 .ToListAsync();
 
+            // Overall seller rating = plain average of every rating left across ALL of this
+            // seller's products (not an average of per-product averages), 1-5 stars.
+            var productIds = await productsQuery.Select(p => p.Id).ToListAsync();
+            var sellerRatings = await _context.Reviews
+                .Where(r => productIds.Contains(r.ProductId))
+                .Select(r => r.Rating)
+                .ToListAsync();
+
+            int sellerReviewCount = sellerRatings.Count;
+            double sellerAverageRating = sellerReviewCount > 0 ? sellerRatings.Average() : 0;
+
             var sellerOrderItems = await _context.OrderItems
                 .Include(oi => oi.Order)
                     .ThenInclude(o => o.Customer)
@@ -219,18 +230,52 @@ namespace _2tlob.Services.Implementations
                 TotalOrdersCount = totalOrdersCount,
                 TotalSalesRevenue = totalSalesRevenue,
                 RecentProducts = recentProducts,
-                RecentOrders = recentOrders
+                RecentOrders = recentOrders,
+                SellerAverageRating = sellerAverageRating,
+                SellerReviewCount = sellerReviewCount
             };
         }
 
         public async Task<SellerOrderListViewModel> GetSellerOrdersAsync(string sellerId)
         {
-            var sellerOrderItems = await _context.OrderItems
+            // Group this seller's order items by the order they belong to, so a single
+            // order with several of the seller's products shows up as ONE row here
+            // (with its own total item count / total amount), instead of one row per item.
+            var orders = await _context.OrderItems
+                .Where(oi => oi.SellerId == sellerId)
+                .GroupBy(oi => new
+                {
+                    oi.OrderId,
+                    oi.Order.OrderDate,
+                    CustomerName = oi.Order.Customer.FullName,
+                    Status = oi.Order.Status
+                })
+                .Select(g => new SellerOrderSummaryDto
+                {
+                    OrderId = g.Key.OrderId,
+                    OrderDate = g.Key.OrderDate,
+                    CustomerName = g.Key.CustomerName,
+                    OrderStatus = g.Key.Status,
+                    ItemCount = g.Sum(oi => oi.Quantity),
+                    TotalAmount = g.Sum(oi => oi.Quantity * oi.UnitPrice)
+                })
+                .OrderByDescending(o => o.OrderDate)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return new SellerOrderListViewModel
+            {
+                Orders = orders
+            };
+        }
+
+        public async Task<SellerOrderDetailsViewModel?> GetSellerOrderDetailsAsync(string sellerId, int orderId)
+        {
+            var items = await _context.OrderItems
                 .Include(oi => oi.Order)
                     .ThenInclude(o => o.Customer)
                 .Include(oi => oi.Product)
-                .Where(oi => oi.SellerId == sellerId)
-                .OrderByDescending(oi => oi.Order.OrderDate)
+                .Where(oi => oi.SellerId == sellerId && oi.OrderId == orderId)
                 .AsNoTracking()
                 .Select(oi => new SellerOrderItemDto
                 {
@@ -247,13 +292,34 @@ namespace _2tlob.Services.Implementations
                     OrderStatus = oi.Order.Status,
                     ShippingAddress = oi.Order.ShippingAddress,
                     City = oi.Order.City,
-                    PhoneNumber = oi.Order.PhoneNumber
+                    PhoneNumber = oi.Order.PhoneNumber,
+                    // The rating this exact customer left for this exact product (if any).
+                    CustomerRating = _context.Reviews
+                        .Where(r => r.CustomerId == oi.Order.CustomerId && r.ProductId == oi.ProductId)
+                        .Select(r => (int?)r.Rating)
+                        .FirstOrDefault()
                 })
                 .ToListAsync();
 
-            return new SellerOrderListViewModel
+            // Not found, or this order doesn't contain any of this seller's products
+            // (e.g. sellerId spoofed / wrong order id) -> treat as not found.
+            if (!items.Any())
             {
-                Items = sellerOrderItems
+                return null;
+            }
+
+            var first = items[0];
+            return new SellerOrderDetailsViewModel
+            {
+                OrderId = first.OrderId,
+                OrderDate = first.OrderDate,
+                CustomerName = first.CustomerName,
+                CustomerEmail = first.CustomerEmail,
+                ShippingAddress = first.ShippingAddress,
+                City = first.City,
+                PhoneNumber = first.PhoneNumber,
+                OrderStatus = first.OrderStatus,
+                Items = items
             };
         }
     }

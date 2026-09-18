@@ -41,21 +41,20 @@ namespace _2tlob.Controllers
                 return RedirectToAction("Details", "Products", new { id = productId });
             }
 
-            var alreadyReviewed = await _context.Reviews
-                .AnyAsync(r => r.ProductId == productId && r.CustomerId == CurrentUserId);
-
-            if (alreadyReviewed)
-            {
-                TempData["ErrorMessage"] = "You have already reviewed this product.";
-                return RedirectToAction("Details", "Products", new { id = productId });
-            }
+            // A customer can have only ONE review per product, but they can come back
+            // and change it any time (e.g. after ordering it again) instead of being
+            // locked into whatever they wrote the first time.
+            var existingReview = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.ProductId == productId && r.CustomerId == CurrentUserId);
 
             var model = new AddReviewViewModel
             {
                 ProductId = product.Id,
                 ProductName = product.Name,
                 ProductImageUrl = product.ImageUrl ?? "/images/products/default.jpg",
-                Rating = 5
+                IsEditing = existingReview != null,
+                Rating = existingReview?.Rating ?? 5,
+                Comment = existingReview?.Comment ?? string.Empty
             };
 
             return View(model);
@@ -81,28 +80,35 @@ namespace _2tlob.Controllers
                 return RedirectToAction("Details", "Products", new { id = model.ProductId });
             }
 
-            var alreadyReviewed = await _context.Reviews
-                .AnyAsync(r => r.ProductId == model.ProductId && r.CustomerId == CurrentUserId);
+            var existingReview = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.ProductId == model.ProductId && r.CustomerId == CurrentUserId);
 
-            if (alreadyReviewed)
+            if (existingReview != null)
             {
-                TempData["ErrorMessage"] = "You have already reviewed this product.";
-                return RedirectToAction("Details", "Products", new { id = model.ProductId });
+                // Update the existing review in place instead of creating a duplicate.
+                existingReview.Rating = model.Rating;
+                existingReview.Comment = model.Comment;
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Your review has been updated.";
+            }
+            else
+            {
+                var review = new Review
+                {
+                    ProductId = model.ProductId,
+                    CustomerId = CurrentUserId,
+                    Rating = model.Rating,
+                    Comment = model.Comment,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Reviews.Add(review);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Thank you! Your review has been submitted.";
             }
 
-            var review = new Review
-            {
-                ProductId = model.ProductId,
-                CustomerId = CurrentUserId,
-                Rating = model.Rating,
-                Comment = model.Comment,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Reviews.Add(review);
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Thank you! Your review has been submitted.";
             return RedirectToAction("Details", "Products", new { id = model.ProductId });
         }
     }

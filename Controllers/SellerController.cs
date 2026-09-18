@@ -241,6 +241,18 @@ namespace _2tlob.Controllers
             return View(orders);
         }
 
+        [Authorize(Roles = "Seller")]
+        public async Task<IActionResult> OrderDetails(int id)
+        {
+            var details = await _sellerService.GetSellerOrderDetailsAsync(CurrentUserId, id);
+            if (details == null)
+            {
+                return NotFound();
+            }
+
+            return View(details);
+        }
+
         [HttpPost]
         [Authorize(Roles = "Seller")]
         [ValidateAntiForgeryToken]
@@ -262,7 +274,7 @@ namespace _2tlob.Controllers
                 TempData["ErrorMessage"] = result.ErrorMessage ?? "Failed to update order status.";
             }
 
-            return RedirectToAction(nameof(MyOrders));
+            return RedirectToAction(nameof(OrderDetails), new { id = orderId });
         }
     }
 }

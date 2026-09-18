@@ -11,10 +11,10 @@
             </div>
         </div>
 
-        @if (Model.CanReview && !Model.HasReviewed)
+        @if (Model.CanReview)
         {
             <a asp-controller="Reviews" asp-action="AddReview" asp-route-productId="@Model.Product.Id" class="btn btn-outline-primary">
-                Write a Review
+                @(Model.HasReviewed ? "Edit Your Review" : "Write a Review")
             </a>
         }
     </div>
