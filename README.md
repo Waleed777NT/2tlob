@@ -1,94 +1,142 @@
-# 2tlob — Multi-Vendor E-Commerce Platform (Graduation Project)
+# 2tlob — E-Commerce Marketplace
 
-ASP.NET Core MVC (.NET 9) marketplace connecting Customers, Sellers, and an
-Administrator, plus a simple chatbot. This repo is currently a **prepared
-environment**, not a finished app: the data model, database, and auth
-scaffolding are done; the controllers/views/services for each feature are
-intentionally empty so the team builds them.
+**ITI .NET Summer Training — Graduation Project (ASP.NET Core MVC)**
+
+2tlob is a multi-vendor e-commerce web application where customers can browse and buy products from independent sellers, and sellers and admins manage the catalog, orders, and the marketplace itself — all built end-to-end with ASP.NET Core MVC, Entity Framework Core, and SQL Server.
+
+> Repository: https://github.com/Waleed777NT/2tlob
 
 ---
 
-## 1. What's already set up (do not need to rebuild)
+## Tech Stack
 
-- **Models** (`Models/`) — `ApplicationUser`, `Product`, `Category`, `Cart`,
-  `CartItem`, `Wishlist`, `WishlistItem`, `Order`, `OrderItem`, `Review`,
-  `SellerRequest`, `ContactMessage`, plus enums (`OrderStatus`,
-  `RequestStatus`, `UserStatus`, `ContactReason`, `ContactMessageStatus`).
-- **Database** (`Data/ApplicationDbContext.cs`) — EF Core `IdentityDbContext`
-  with all `DbSet`s and relationships/indexes configured.
-- **Migrations** (`Migrations/`) — match the current models. Applied
-  automatically on startup (`context.Database.MigrateAsync()` in
-  `Program.cs`).
-- **Identity & Roles** — ASP.NET Core Identity is wired up in `Program.cs`
-  (cookie auth, password rules, lockout). `Data/SeedData.cs` seeds the three
-  roles (`Admin`, `Seller`, `Customer`) and one admin account on startup.
-- **Shared UI shell** (`Views/Shared/_Layout.cshtml`, `_LoginPartial.cshtml`,
-  `_Alerts.cshtml`, `Error.cshtml`, `NotFound.cshtml`, `AccessDenied.cshtml`)
-  — the nav bar, login/logout menu, and error pages already link to the
-  exact controller/action names below, so the site "lights up" as each
-  controller is built. No changes needed here to get started.
-- **Middleware** — security headers and a suspended-user sign-out check.
-- **Assets** — `wwwroot/` (Bootstrap-based `site.css`, `site.js`, product
-  placeholder images).
+- **Backend:** ASP.NET Core MVC (.NET 9)
+- **Data access:** Entity Framework Core 9 (Code-First) + SQL Server
+- **Auth:** ASP.NET Core Identity — role-based (`Admin`, `Seller`, `Customer`)
+- **Frontend:** Razor Views, Bootstrap 5, Bootstrap Icons, jQuery
+- **AI assistant:** In-app chatbot backed by the Gemini API, with a rule-based fallback when no API key is configured
 
-## 2. What's intentionally empty (the team's work)
+## User Roles
 
-`Controllers/` (only `HomeController` exists, as a bare placeholder),
-`Views/` (only the shared shell + a placeholder `Home/Index`), `Services/`
-(deleted — interfaces + implementations to be created), `ViewModels/`
-(deleted except `Common/ErrorViewModel`).
+| Role | Description |
+|---|---|
+| **Customer** | Browses the catalog, shops, orders, reviews, and wishlists products |
+| **Seller** | An approved account that lists and manages its own products and fulfills its own orders |
+| **Administrator** | Oversees users, sellers, categories, products, and orders across the whole marketplace |
 
-## 3. Getting started
+---
 
-1. Open `2tlob.csproj` in Visual Studio, or `cd` into the folder and run
-   `dotnet restore`.
-2. Update `appsettings.json` → `ConnectionStrings:DefaultConnection` to point
-   at your own SQL Server / LocalDB instance.
-3. Run the app (`dotnet run` or F5). On first run it applies migrations and
-   seeds roles + an admin user automatically (see `AdminUserSeed` in
-   `appsettings.json` for the seeded email/password — change it before
-   sharing the repo).
-4. Pull the repo, create a feature branch per module, and start building
-   your section below.
+## Features
 
-## 4. Team task breakdown
+### Customer
+- Register, log in / log out, and manage their profile
+- Browse and search the product catalog
+- Filter products by category and sort by price
+- View product details, including ratings and reviews
+- Shopping cart: add products, change quantities, remove items, see the live total
+- Checkout, with the system blocking orders that exceed available stock
+- Place orders and view order history / order details
+- Cancel an order while it's still in a cancellable state
+- Add or remove products from a wishlist
+- Leave a rating + comment review — restricted to products from a **delivered** order, one review per product (editable afterward)
 
-Each member owns a vertical slice: model fields already exist, so this is
-controllers + services + views + Razor pages.
+### Products & Catalog
+- Every product carries a name, description, price, available quantity, category, seller, and image
+- Public catalog with search, category filtering, price sorting, and pagination
 
-### Member 1 — Identity, Roles & Admin User Management
-- `AccountController` — Register / Login / Logout (Identity), `Profile`
-- `AdminController` — `Dashboard`, `Users` (activate/suspend), `SellerRequests` (approve/reject), `ContactMessages`
-- Views: `Views/Account/*`, `Views/Admin/*`
+### Seller
+- Submit a request to become a seller, reviewed by an admin before approval
+- Add, edit, and delete their own products
+- Update stock quantity for their products
+- View orders that contain their products and update those orders' status
+- Seller dashboard: their products, their orders, and their sales
+- Ownership is enforced everywhere — a seller can only ever manage their own products and orders
 
-### Member 2 — Products & Categories
-- `ProductController` — `Index` (browse/search/filter/sort), `Details`
-- `AdminCategoriesController` — CRUD
-- `AdminProductsController` — moderation (`Index`, remove inappropriate)
-- Views: `Views/Product/*`, `Views/AdminCategories/*`, `Views/AdminProducts/*`
-- Consider replacing the placeholder `Home/Index` with real product browsing, or keep it as a landing page and route "Browse Products" to `Product/Index` (nav already points there)
+### Administrator
+- Review, approve, or reject seller requests
+- Manage users: view, activate, and suspend accounts
+- Manage categories: add, edit, and delete
+- Manage products: view all listings, remove inappropriate ones
+- View all orders and their details across every seller
+- Review incoming contact/support messages, with status tracking (new / in progress / resolved)
+- Admin dashboard: total customers, total sellers, total products, total orders, and pending orders
 
-### Member 3 — Cart & Orders
-- `CartController` — add/remove/update quantity, `Index`
-- `OrderController` — `Checkout`, `MyOrders`, `Details`, `Cancel`
-- `AdminOrdersController` — `Index`, `Details` (all orders)
-- `WishlistController` — add/remove, `Index`
-- Views: `Views/Cart/*`, `Views/Order/*`, `Views/AdminOrders/*`, `Views/Wishlist/*`
+### Beyond the core spec
+- **AI chatbot assistant** (Gemini API, with an offline rule-based fallback) as a lightweight in-app helper
+- **Contact/support inbox** for the admin team to track and resolve incoming messages
 
-### Member 4 — Seller Panel & Reviews
-- `SellerController` — `Dashboard`, `MyProducts`, `CreateProduct`, `EditProduct`, `MyOrders`, `UpdateOrderStatus`, `RequestSeller`
-- `ReviewController` — `AddReview` (purchase-verified)
-- Views: `Views/Seller/*`, review partial embedded in `Product/Details`
+---
 
-### Member 5 — Chatbot & Dashboards (Integration Lead)
-- Chatbot controller + widget partial, injected into `_Layout.cshtml`
-- Dashboard sections inside `AdminController.Dashboard` and `SellerController.Dashboard`
-- `ContactController` — `Index`, `ThankYou`
-- Branch merging, final integration testing, deployment
+## Requirements Coverage
 
-## 5. Notes
-- The nav bar and login menu already reference all of the above
-  controller/action names — a link will 404 until that controller exists,
-  which is expected during development.
-- Register your services in `Program.cs` (`TODO` comment marks where) as you
-  build them.
+Built against the project's graduation requirements document — every core module below is implemented:
+
+- [x] Customer accounts (register, login/logout, profile)
+- [x] Product browsing, search, category filter, price sort, product details
+- [x] Shopping cart (add / update / remove, total, stock-safe checkout)
+- [x] Orders (create, history, details, cancel) with status lifecycle: `Pending → Confirmed → Shipped → Delivered` / `Cancelled`
+- [x] Wishlist (add / remove)
+- [x] Seller product management (add / edit / delete / update quantity, own-products only)
+- [x] Seller order handling (view & update status of orders containing their products)
+- [x] Seller approval workflow (request → admin approve/reject)
+- [x] Category management (admin add / edit / delete)
+- [x] Reviews (rating + comment, shown with overall product rating)
+- [x] Admin user management (view / activate / suspend)
+- [x] Admin product moderation (view / remove inappropriate products)
+- [x] Admin order oversight (view all orders & details)
+- [x] Admin dashboard (customers, sellers, products, orders, pending orders)
+- [x] Seller dashboard (products, orders, sales)
+
+---
+
+## Getting Started
+
+1. **Clone the repo**
+   ```bash
+   git clone https://github.com/Waleed777NT/2tlob.git
+   cd 2tlob
+   ```
+2. **Configure the database** — set `ConnectionStrings:DefaultConnection` in `appsettings.json` (or `appsettings.Development.json`) to a reachable SQL Server / LocalDB instance.
+3. **Run the app** — migrations are applied and the database is seeded automatically on startup:
+   ```bash
+   dotnet run
+   ```
+4. *(Optional)* Add a `Gemini:ApiKey` to your configuration to enable the AI-powered chatbot; without it, the chatbot falls back to rule-based replies.
+
+### Seeded accounts (development)
+
+On first run the app seeds roles, an admin account, sample categories, sellers, customers, and products so the site has real content right away:
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `adminMarketplace22@gmail.com` | `Admin@Password123!` |
+| Seller | `seller1@2tlob.com` / `seller2@2tlob.com` | `Seller@123!` |
+| Customer | `customer1@2tlob.com` / `customer2@2tlob.com` / `customer3@2tlob.com` | `Customer@123!` |
+
+---
+
+## Project Structure
+
+```
+2tlob/
+├── Controllers/       # MVC controllers (Account, Products, Cart, Orders, Seller, Admin*, ...)
+├── Models/             # EF Core entities (Product, Order, Cart, Review, Category, ...)
+├── ViewModels/         # Request/response shaping for views
+├── Views/               # Razor views per controller
+├── Services/           # Business logic (Interfaces + Implementations)
+├── Data/                 # ApplicationDbContext + SeedData
+├── Migrations/       # EF Core migrations
+└── wwwroot/            # Static assets (CSS, JS, product images)
+```
+
+---
+
+## Team — G02, Team 1
+
+- Waleed Nashaat Yousef Ramadan
+- Ahmed Tamer Fikry Alnahal
+- Ahmed Kareem Abdelmonem Beltagy
+- Mariam Ehab Ali Elkharat
+- Menna Ibrahim Ahmed Awad
+
+Built as the graduation project for the **ITI .NET Summer Training Program**.
