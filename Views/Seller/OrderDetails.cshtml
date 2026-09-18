@@ -1,0 +1,158 @@
+﻿@using _2tlob.Enum
+@model _2tlob.ViewModels.Order.SellerOrderDetailsViewModel
+@{
+    ViewData["Title"] = $"Order #{Model.OrderId}";
+
+    var pillClass = Model.OrderStatus switch
+    {
+        OrderStatus.Pending => "tlob-pill--gold",
+        OrderStatus.Confirmed => "tlob-pill--green",
+        OrderStatus.Shipped => "tlob-pill--green",
+        OrderStatus.Delivered => "tlob-pill--green",
+        OrderStatus.Cancelled => "tlob-pill--brick",
+        _ => "tlob-pill--muted"
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
+}
+
+<div class="tlob-scope">
+    <div class="tlob-section" style="margin-bottom: 1.8rem;">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <p class="tlob-eyebrow mb-0">Seller</p>
+                <span class="tlob-pill @pillClass">@Model.OrderStatus</span>
+            </div>
+            <h1 style="font: 560 1.85rem/1.2 var(--font-display); margin: .25rem 0 .35rem;">Order #@Model.OrderId</h1>
+            <p style="color: var(--muted); font-size: .9rem; margin: 0;">
+                Placed @Model.OrderDate.ToString("MMMM dd, yyyy HH:mm") &middot; @Model.CustomerName
+            </p>
+        </div>
+        <a asp-controller="Seller" asp-action="MyOrders" class="tlob-btn tlob-btn--ghost tlob-btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to my orders
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="tlob-callout tlob-callout--gold mb-3"><i class="bi bi-check-circle mt-1"></i><span>@TempData["SuccessMessage"]</span></div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="tlob-callout tlob-callout--brick mb-3"><i class="bi bi-exclamation-triangle-fill mt-1"></i><span>@TempData["ErrorMessage"]</span></div>
+    }
+
+    <div class="tlob-grid-detail">
+        <div class="tlob-card tlob-panel">
+            <div class="tlob-section">
+                <h3><i class="bi bi-box text-primary me-2"></i>Your items in this order</h3>
+            </div>
+
+            <div class="tlob-table-wrap">
+                <table class="tlob-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-center">Unit price</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-center">Customer rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="@(string.IsNullOrEmpty(item.ProductImageUrl) ? "/images/products/default.jpg" : item.ProductImageUrl)"
+                                             alt="@item.ProductName" class="tlob-thumb" />
+                                        <span class="fw-semibold small">@item.ProductName</span>
+                                    </div>
+                                </td>
+                                <td class="text-center small fw-semibold">@item.UnitPrice.ToString("C")</td>
+                                <td class="text-center small"><span class="tlob-pill tlob-pill--muted">@item.Quantity</span></td>
+                                <td class="text-end small fw-bold" style="color: var(--gold-600);">@item.LineTotal.ToString("C")</td>
+                                <td class="text-center small">
+                                    @if (item.CustomerRating.HasValue)
+                                    {
+                                        <span class="text-warning" title="@item.CustomerRating/5">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="bi @(i <= item.CustomerRating ? "bi-star-fill" : "bi-star")"></i>
+                                            }
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted" style="font-size: .78rem;">Not rated yet</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tlob-summary-total mt-2">
+                <span class="fw-bold">Your total for this order</span>
+                <span class="amount">@Model.TotalAmount.ToString("C")</span>
+            </div>
+        </div>
+
+        <div>
+            <div class="tlob-card tlob-panel mb-4">
+                <h4 class="mb-3">Customer & delivery</h4>
+                <div class="mb-2">
+                    <span class="text-muted small d-block">Customer</span>
+                    <span class="fw-semibold">@Model.CustomerName</span>
+                    <div class="text-muted" style="font-size: .8rem;">@Model.CustomerEmail</div>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted small d-block">Shipping address</span>
+                    <span class="fw-semibold">@Model.ShippingAddress<br />@Model.City</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Phone</span>
+                    <span class="fw-semibold"><i class="bi bi-telephone me-1 text-muted"></i>@Model.PhoneNumber</span>
+                </div>
+            </div>
+
+            <div class="tlob-card tlob-panel">
+                <h4 class="mb-3">Order status</h4>
+
+                @if (Model.CanUpdateStatus)
+                {
+                    <form asp-controller="Seller" asp-action="UpdateOrderStatus" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="orderId" value="@Model.OrderId" />
+                        <div class="tlob-field">
+                            <label>New status</label>
+                            <select name="status">
+                                @foreach (OrderStatus status in System.Enum.GetValues(typeof(OrderStatus)))
+                                {
+                                    <option value="@status" selected="@(status == Model.OrderStatus)">@status</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="tlob-btn mt-2">
+                            <i class="bi bi-arrow-repeat me-1"></i>Update status
+                        </button>
+                    </form>
+                    <p class="text-muted mt-2 mb-0" style="font-size: .78rem;">
+                        Note: this order's status applies to the whole order, not just your items — updating it also affects any other seller's items in the same order.
+                    </p>
+                }
+                else
+                {
+                    <div class="tlob-callout">
+                        <i class="bi bi-info-circle mt-1"></i>
+                        <span>This order is already @Model.OrderStatus.ToString().ToLower() and can't be updated anymore.</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

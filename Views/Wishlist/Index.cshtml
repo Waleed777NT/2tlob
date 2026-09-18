@@ -1,8 +1,9 @@
-﻿@using _2tlob.ViewModels.Wishlist
-@model WishlistViewModel
+﻿@model List<_2tlob.Models.Product>
 @{
     ViewData["Title"] = "My Wishlist";
 }
+
+@Html.AntiForgeryToken()
 
 @section Styles {
     <link rel="stylesheet" href="~/css/auth-theme.css" asp-append-version="true" />
@@ -15,7 +16,7 @@
         <p>Products you've saved for later.</p>
     </div>
 
-    @if (!Model.Items.Any())
+    @if (!Model.Any())
     {
         <div class="tlob-card tlob-empty">
             <i class="bi bi-heart" style="font-size: 2.5rem; color: var(--line);"></i>
@@ -28,54 +29,41 @@
     }
     else
     {
-        <div class="row g-4">
-            @foreach (var item in Model.Items)
+        <div class="row g-4" id="wishlist-grid">
+            @foreach (var product in Model)
             {
-                <div class="col-md-3 col-sm-6">
-                    <div class="tlob-card h-100 d-flex flex-column">
-                        <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId" class="d-block">
-                            <img src="@(string.IsNullOrEmpty(item.ProductImageUrl) ? "/images/placeholder.jpg" : item.ProductImageUrl)"
-                                 alt="@item.ProductName" style="width:100%; height:180px; object-fit:cover;" />
-                        </a>
-                        <div class="p-3 d-flex flex-column flex-grow-1">
-                            <span class="tlob-pill tlob-pill--muted align-self-start mb-2">@item.CategoryName</span>
-                            <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId"
-                               class="fw-semibold mb-1" style="color: var(--ink); text-decoration: none;">
-                                @item.ProductName
-                            </a>
-                            <p class="fw-bold mb-2" style="color: var(--gold-600);">@item.Price.ToString("C")</p>
-
-                            @if (item.InStock)
-                            {
-                                <span class="tlob-pill tlob-pill--green align-self-start mb-2">In stock</span>
-                            }
-                            else
-                            {
-                                <span class="tlob-pill tlob-pill--brick align-self-start mb-2">Out of stock</span>
-                            }
-
-                            <div class="d-flex gap-2 mt-auto">
-                                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="flex-grow-1">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="productId" value="@item.ProductId" />
-                                    <input type="hidden" name="quantity" value="1" />
-                                    <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Wishlist")" />
-                                    <button type="submit" class="tlob-btn tlob-btn-sm" style="width: 100% !important;" @(item.InStock ? "" : "disabled")>
-                                        <i class="bi bi-cart-plus me-1"></i>Add
-                                    </button>
-                                </form>
-                                <form asp-controller="Wishlist" asp-action="Remove" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="productId" value="@item.ProductId" />
-                                    <button type="submit" class="tlob-icon-btn tlob-icon-btn--danger" title="Remove from wishlist">
-                                        <i class="bi bi-trash3"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                var partialViewData = new ViewDataDictionary(ViewData)
+                {
+                    { "IsWishlisted", true }
+                };
+                @await Html.PartialAsync("_ProductCard", product, partialViewData)
             }
         </div>
     }
 </div>
+
+@section Scripts {
+    <script src="~/js/product-actions.js" asp-append-version="true"></script>
+    <script>
+        // On this page specifically, un-hearting a product should drop its card
+        // straight away instead of just flipping the icon (product-actions.js
+        // already handles the actual toggle call + icon swap for us).
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('#wishlist-grid .js-toggle-wishlist').forEach(btn => {
+                const icon = btn.querySelector('.js-wishlist-icon');
+                if (!icon) return;
+
+                new MutationObserver(() => {
+                    if (!icon.classList.contains('bi-heart-fill')) {
+                        const card = btn.closest('.col-md-3, .col-sm-6');
+                        if (card) {
+                            card.style.transition = 'opacity .25s ease';
+                            card.style.opacity = '0';
+                            setTimeout(() => card.remove(), 250);
+                        }
+                    }
+                }).observe(icon, { attributes: true, attributeFilter: ['class'] });
+            });
+        });
+    </script>
+}

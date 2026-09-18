@@ -59,6 +59,18 @@ namespace _2tlob.Services.Implementations
             };
         }
 
+        // Returns the actual Product entities on the wishlist, so the Wishlist page can
+        // render them with the exact same _ProductCard partial used on the Products pages.
+        public async Task<List<Product>> GetWishlistProductsAsync(string customerId)
+        {
+            var wishlist = await GetOrCreateWishlistAsync(customerId);
+
+            return wishlist.Items
+                .OrderByDescending(i => i.AddedAt)
+                .Select(i => i.Product)
+                .ToList();
+        }
+
         public async Task<(bool Success, string? ErrorMessage)> AddToWishlistAsync(string customerId, int productId)
         {
             var product = await _context.Products.FindAsync(productId);

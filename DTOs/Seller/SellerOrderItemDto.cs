@@ -19,6 +19,9 @@ namespace _2tlob.DTOs.Seller
         public string ShippingAddress { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
+
+        // The rating THIS customer gave THIS product (null if they haven't reviewed it yet).
+        public int? CustomerRating { get; set; }
     }
 
 }

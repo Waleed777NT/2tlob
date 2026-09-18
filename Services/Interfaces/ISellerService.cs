@@ -15,5 +15,6 @@ namespace _2tlob.Services.Interfaces
         Task<(bool Success, string? ErrorMessage)> RejectRequestAsync(int requestId, string? adminNotes);
         Task<SellerDashboardViewModel> GetSellerDashboardAsync(string sellerId);
         Task<SellerOrderListViewModel> GetSellerOrdersAsync(string sellerId);
+        Task<SellerOrderDetailsViewModel?> GetSellerOrderDetailsAsync(string sellerId, int orderId);
     }
 }

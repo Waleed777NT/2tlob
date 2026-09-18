@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using _2tlob.Data;
 using _2tlob.Models;
 using _2tlob.Services.Interfaces;
 
@@ -11,11 +13,13 @@ namespace _2tlob.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
-        public OrdersController(IOrderService orderService, UserManager<ApplicationUser> userManager)
+        public OrdersController(IOrderService orderService, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _orderService = orderService;
             _userManager = userManager;
+            _context = context;
         }
 
         // GET: /Orders  or  /Orders/MyOrders  -> customer's order history
@@ -42,6 +46,16 @@ namespace _2tlob.Controllers
             {
                 return NotFound();
             }
+
+            // Products already reviewed by this customer (from any order) -> hide the
+            // "Set review" button for those items and show a "Reviewed" badge instead.
+            var productIds = details.Items.Select(i => i.ProductId).Distinct().ToList();
+            var reviewedProductIds = await _context.Reviews
+                .Where(r => r.CustomerId == customerId && productIds.Contains(r.ProductId))
+                .Select(r => r.ProductId)
+                .ToListAsync();
+
+            ViewBag.ReviewedProductIds = reviewedProductIds.ToHashSet();
 
             return View(details);
         }

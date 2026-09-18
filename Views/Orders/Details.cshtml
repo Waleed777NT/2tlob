@@ -47,12 +47,19 @@
                     <thead>
                         <tr>
                             <th>Product</th>
+                            <th>Seller</th>
                             <th class="text-center">Unit price</th>
                             <th class="text-center">Qty</th>
                             <th class="text-end">Total</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end">Review</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @{
+                            var reviewedProductIds = (HashSet<int>)(ViewBag.ReviewedProductIds ?? new HashSet<int>());
+                            bool canReview = Model.Order.Status == OrderStatus.Delivered;
+                        }
                         @foreach (var item in Model.Items)
                         {
                             <tr>
@@ -60,18 +67,34 @@
                                     <div class="d-flex align-items-center gap-3">
                                         <img src="@(string.IsNullOrEmpty(item.Product.ImageUrl) ? "/images/placeholder.jpg" : item.Product.ImageUrl)"
                                              alt="@item.Product.Name" class="tlob-thumb" />
-                                        <div>
-                                            <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId"
-                                               class="fw-semibold small" style="color: var(--ink); text-decoration: none;">
-                                                @item.Product.Name
-                                            </a>
-                                            <div class="text-muted" style="font-size: .75rem;">Sold by @item.Product.Seller?.FullName</div>
-                                        </div>
+                                        <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId"
+                                           class="fw-semibold small" style="color: var(--ink); text-decoration: none;">
+                                            @item.Product.Name
+                                        </a>
                                     </div>
                                 </td>
+                                <td class="small">@(item.Product.Seller?.FullName ?? "Unknown seller")</td>
                                 <td class="text-center small fw-semibold">@item.UnitPrice.ToString("C")</td>
                                 <td class="text-center small"><span class="tlob-pill tlob-pill--muted">@item.Quantity</span></td>
                                 <td class="text-end small fw-bold" style="color: var(--gold-600);">@((item.UnitPrice * item.Quantity).ToString("C"))</td>
+                                <td class="text-center"><span class="tlob-pill @pillClass">@Model.Order.Status</span></td>
+                                <td class="text-end">
+                                    @if (canReview)
+                                    {
+                                        bool isReviewed = reviewedProductIds.Contains(item.ProductId);
+                                        <a asp-controller="Reviews" asp-action="AddReview" asp-route-productId="@item.ProductId"
+                                           class="tlob-btn tlob-btn--ghost tlob-btn-sm">
+                                            <i class="bi @(isReviewed ? "bi-pencil" : "bi-star") me-1"></i>@(isReviewed ? "Edit review" : "Set review")
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="tlob-btn tlob-btn--ghost tlob-btn-sm" disabled
+                                                title="You can review this seller once the order is delivered">
+                                            <i class="bi bi-star me-1"></i>Set review
+                                        </button>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
