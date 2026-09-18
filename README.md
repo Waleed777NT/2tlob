@@ -63,7 +63,7 @@ Built as the graduation project for the **ITI .NET Summer Training Program**.
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0D1B12,100:145A32&height=3&width=100%" width="100%"/>
 </div>
 
-## ✨ Features
+##  Features
 
 ###  Customer
 - Register, log in / log out, and manage their profile
@@ -174,7 +174,7 @@ On first run the app seeds roles, an admin account, sample categories, sellers, 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0D1B12,100:145A32&height=3&width=100%" width="100%"/>
 </div>
 
-##  Team — G02, Team 1
+##  Contributors
 
 | # | Contributor |
 |---|---|
